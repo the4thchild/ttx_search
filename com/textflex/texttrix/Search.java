@@ -255,6 +255,10 @@ public class Search extends PlugInWindow {
 		String newstr = s;
 		// flags whether to employ the find function
 		boolean find = false;
+		String selectedText = "";
+		
+		// reset results lable
+		diag.setResultsLbl("");
 		
 		//System.out.println("selected text: " + s.substring(x, y));
 		// Acts according to whether the plug-in is set to the 
@@ -291,10 +295,19 @@ public class Search extends PlugInWindow {
 		} else if (invokeReplace 
 			&& x != y
 			&& (diag.getIgnoreCase() 
-					&& s.substring(x, y).equalsIgnoreCase(diag.getFindText())
-				|| s.substring(x, y).equals(diag.getFindText()))) {
+					&& (selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindText())
+				|| selectedText.equals(diag.getFindText()))) {
 			// replaces single instance of quarry, only if already highlighted;
 			// otherwise, defaults to find mode to highlight the quarry
+			String[] results = new String[] {
+				"Replaced " + selectedText + " with " 
+					+ diag.getReplaceText() + " once.",
+				"Boys and girls, Mr. " + diag.getReplaceText() 
+					+ " will be your substitute teacher today.",
+				selectedText + ", you're fired!",
+				diag.getReplaceText() + ", you're hired!"
+			};
+			displayResults(results, 4);
 			return new PlugInOutcome(
 				diag.getReplaceText(), 
 				selectionStart, 
@@ -357,7 +370,9 @@ public class Search extends PlugInWindow {
 				
 				// advance start by one char if the selected region already
 				// highlights the quarry
-				if (s.substring(x, y).equals(findText)) x++;
+				String selection = s.substring(x, y);
+				if (selection.equals(findText)
+					|| diag.getIgnoreCase() && selection.equalsIgnoreCase(findText)) x++;
 				
 				// find the quarry
 				selectionStart =
@@ -388,6 +403,11 @@ public class Search extends PlugInWindow {
 			noTextChange);
 	}
 	
+	private void displayResults(String[] results, int weightFront) {
+		int n = (int) (results.length * Math.pow(Math.random(), weightFront));
+		diag.setResultsLbl(results[n]);
+	}
+	
 	/**Find a the first occurrence of a given sequence in a string.
 	 * @param text string to search
 	 * @param quarry sequence to find
@@ -396,8 +416,25 @@ public class Search extends PlugInWindow {
 	 */
 	public int findSeq(String text, String quarry, int start, int end) {
 		int loc = -1;
-		if (start < text.length())
-			return (loc = text.indexOf(quarry, start)) >= end ? -1 : loc;
+		if (start < text.length()) {
+			loc = text.indexOf(quarry, start);
+			if (loc < end) {
+				String[] results = new String[] {
+					"Found " + quarry + ".",
+					"Eureka!  I found " + quarry + ".",
+					"Caught " + quarry + " red-handed, police officer.",
+					"Dr. " + quarry + "-stone, I presume?"
+				};
+				displayResults(results, 4);
+				return loc;
+			}
+		}
+		String[] results = new String[] {
+			"Sorry, I couldn't find " + quarry + " here.",
+			quarry + " has escaped!",
+			"Sir, all I'm picking up is static!"
+		};
+		displayResults(results, 4);
 		return -1;
 	}
 
@@ -470,11 +507,24 @@ public class Search extends PlugInWindow {
 		while (start < finish
 			&& !(word = LibTTx.getWord(text, start, finish)).equals("")) {
 			if (word.equals(quarry)) {
+				String[] results = new String[] {
+					"Found the word" + quarry + ".",
+					"Eureka!  I found " + quarry + ".",
+					"Caught " + quarry + " red-handed, police officer.",
+					"Dr. " + quarry + "stone, I presume?"
+				};
+				displayResults(results, 4);
 				return text.indexOf(quarry, start);
 			} else {
 				start = text.indexOf(word, start) + word.length();
 			}
 		}
+		String[] results = new String[] {
+			"Sorry, I couldn't find " + quarry + " here.  Is it part of another word?",
+			quarry + " has escaped!",
+			"Sir, all I'm picking up is static!"
+		};
+		displayResults(results, 4);
 		return -1;
 	}
 
@@ -514,6 +564,7 @@ public class Search extends PlugInWindow {
 		
 		// continue until the reaching text's end or the quarry has
 		// not been found
+		int count = 0;
 		while (n < end && n != -1) {
 			prev = n;
 			n = find(text, quarry, n, word, ignoreCase);
@@ -525,6 +576,7 @@ public class Search extends PlugInWindow {
 				// append text at least up to the word
 				if (n < end) {
 					s.append(text.substring(prev, n) + replacement);
+					count++;
 				} else {
 					// found, but not replaced b/c doesn't start
 					// within the region; 
@@ -548,6 +600,23 @@ public class Search extends PlugInWindow {
 			s.append(text.substring(n));
 			text = s.toString();
 		}
+		
+		String[] results = null;
+		if (count > 10) {
+			results = new String[] {
+				"Replaced " + quarry + " " + count + " times.",
+				"Mmm mm!  That felt good.  Gobbled up " + count 
+					+ " " + quarry + "\'s.",
+				"Whew!  " + count + " occurances of " + quarry + ", all replaced"
+			};
+		} else {
+			results = new String[] {
+				"Replaced " + quarry + " " + count + " times.",
+				count + " replacements, and I'm still hungry.  Got anymore?",
+				"Goodbye, " + quarry + " (" + count + "x)"
+			};
+		}
+		displayResults(results, 4);
 		return text;
 	}
 	
@@ -746,6 +815,8 @@ class FindDialog extends JPanel {//JFrame {
 	JCheckBox selection = null; // search only within a highlighted section
 	JCheckBox replaceAll = null; // replace all instances of search expression
 	JCheckBox ignoreCase = null; // ignore upper/lower case
+	JLabel resultsTitleLbl = null;
+	JLabel resultsLbl = null;
 	JButton findBtn = null; // label for the search button
 	JButton replaceBtn = null; // label for the replace button
 	JButton statsBtn = null; // label for the stats button
@@ -938,6 +1009,32 @@ class FindDialog extends JPanel {//JFrame {
 		msg =
 			"Searches for both lower and upper case versions of the expression";
 		ignoreCase.setToolTipText(msg);
+		
+		
+		resultsTitleLbl = new JLabel("Reults: ");
+		LibTTx.addGridBagComponent(
+			resultsTitleLbl,
+			constraints,
+			0,
+			5,
+			1,
+			1,
+			100,
+			0,
+			this);//contentPane);
+
+		resultsLbl = new JLabel("");
+		resultsLbl.setHorizontalAlignment(JLabel.RIGHT);
+		LibTTx.addGridBagComponent(
+			resultsLbl,
+			constraints,
+			1,
+			5,
+			2,
+			1,
+			100,
+			0,
+			this);//contentPane);
 
 		// fires the "find" action
 		findBtn = new JButton(findAction);
@@ -945,7 +1042,7 @@ class FindDialog extends JPanel {//JFrame {
 			findBtn,
 			constraints,
 			0,
-			5,
+			6,
 			1,
 			1,
 			100,
@@ -958,7 +1055,7 @@ class FindDialog extends JPanel {//JFrame {
 			replaceBtn,
 			constraints,
 			1,
-			5,
+			6,
 			1,
 			1,
 			100,
@@ -971,7 +1068,7 @@ class FindDialog extends JPanel {//JFrame {
 			statsBtn,
 			constraints,
 			2,
-			5,
+			6,
 			1,
 			1,
 			100,
@@ -984,18 +1081,19 @@ class FindDialog extends JPanel {//JFrame {
 			charLbl,
 			constraints,
 			0,
-			6,
+			7,
 			2,
 			1,
 			100,
 			0,
 			this);//contentPane);
 		charCountLbl = new JLabel("");
+		charCountLbl.setHorizontalTextPosition(JLabel.RIGHT);
 		LibTTx.addGridBagComponent(
 			charCountLbl,
 			constraints,
 			2,
-			6,
+			7,
 			1,
 			1,
 			100,
@@ -1008,18 +1106,19 @@ class FindDialog extends JPanel {//JFrame {
 			wordLbl,
 			constraints,
 			0,
-			7,
+			8,
 			2,
 			1,
 			100,
 			0,
 			this);//contentPane);
 		wordCountLbl = new JLabel("");
+		wordCountLbl.setHorizontalTextPosition(JLabel.RIGHT);
 		LibTTx.addGridBagComponent(
 			wordCountLbl,
 			constraints,
 			2,
-			7,
+			8,
 			1,
 			1,
 			100,
@@ -1032,18 +1131,19 @@ class FindDialog extends JPanel {//JFrame {
 			lineLbl,
 			constraints,
 			0,
-			8,
+			9,
 			2,
 			1,
 			100,
 			0,
 			this);//contentPane);
 		lineCountLbl = new JLabel("");
+		lineCountLbl.setHorizontalTextPosition(JLabel.RIGHT);
 		LibTTx.addGridBagComponent(
 			lineCountLbl,
 			constraints,
 			2,
-			8,
+			9,
 			1,
 			1,
 			100,
@@ -1144,6 +1244,10 @@ class FindDialog extends JPanel {//JFrame {
 	 */
 	public void setLineCountLbl(String s) {
 		lineCountLbl.setText(s);
+	}
+	
+	public void setResultsLbl(String s) {
+		resultsLbl.setText(s);
 	}
 
 }
