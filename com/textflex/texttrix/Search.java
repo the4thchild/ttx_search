@@ -287,7 +287,7 @@ public class Search extends PlugIn {
 			int end = s.length();
 			// Passes only selected text if flagged to do so
 			if (diag.getSelection()) { // highlighted text only
-				System.out.println("start: " + x + ", end: " + y);
+				//System.out.println("start: " + x + ", end: " + y);
 				selectionStart = start = x;
 				selectionEnd = end = y;
 			} else if (diag.getWrap()) { // entire text
