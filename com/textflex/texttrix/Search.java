@@ -767,7 +767,7 @@ class FindDialog extends JPanel {//JFrame {
 		word.setToolTipText(msg);
 
 		// wrap search through start of text if necessary
-		wrap = new JCheckBox("Wrap");
+		wrap = new JCheckBox("Wrap", true);
 		LibTTx.addGridBagComponent(
 			wrap,
 			constraints,
@@ -818,7 +818,7 @@ class FindDialog extends JPanel {//JFrame {
 		replaceAll.setToolTipText(msg);
 
 		// ignore upper/lower case while searching
-		ignoreCase = new JCheckBox("Ignore case");
+		ignoreCase = new JCheckBox("Ignore case", true);
 		LibTTx.addGridBagComponent(
 			ignoreCase,
 			constraints,
