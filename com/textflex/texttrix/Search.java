@@ -343,35 +343,7 @@ public class Search extends PlugInWindow {
 			selectionEnd,
 			noTextChange);
 	}
-
-	/** Starts the plug-in by displaing the options dialog for users
-	to choose their search options, enter the text to search or
-	with which to replace, and start the search.
-	*
-	public void startPlugIn() {
-		setTmpActivated(true);
-		diag.setVisible(true);//show(); DEPRECATED as of JVM v.1.5.0
-	}
-
-	public void addWindowAdapter() {
-		diag.addWindowAdapter(getWindowAdapter());
-	}
 	
-	public void activateWindow() {
-		diag.toFront();
-	}
-	
-	public boolean isWindowVisible() {
-		return diag.isVisible();
-	}
-	
-	public void closeWindow() {
-		diag.setVisible(false);
-//		setTmpActivated(true);
-//		diag.setVisible(true);
-	}
-	*/
-
 	/**Find a the first occurrence of a given sequence in a string.
 	 * @param text string to search
 	 * @param quarry sequence to find
