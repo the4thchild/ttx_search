@@ -406,8 +406,14 @@ public class Search extends PlugInWindow {
 			noTextChange);
 	}
 	
+	/**Summarizes the results from the find, find/replace, or statistics call.
+	 * @param results the various possible results statements
+	 * @param weightFront the weighting factor for increased chances of
+	 * picking a string earlier in the results array; the higher the value, 
+	 * the more likely an earlier statement will be picked
+	 * @see LibTTx#pickWeighted(String[], int)
+	*/
 	private void displayResults(String[] results, int weightFront) {
-//		int n = (int) (results.length * Math.pow(Math.random(), weightFront));
 		diag.setResultsLbl(LibTTx.pickWeightedStr(results, weightFront));
 	}
 	
@@ -832,7 +838,7 @@ class FindDialog extends JPanel {//JFrame {
 	JLabel lineCountLbl = null; // the actual line count
 	String[] tips = {
 		"Searches and statistics begin from the cursor or start of selected area",
-		"Use \\^t for TABs and \\^n for NEWLINES",
+		"Use ^t for TABs and ^n for NEWLINES",
 		"Stats available for \"Selected area only\", too"
 	};
 		
@@ -1174,11 +1180,6 @@ class FindDialog extends JPanel {//JFrame {
 			this);//contentPane);
 	}
 
-/*
-	public void addWindowAdapter(WindowAdapter adapter) {
-		addWindowListener(adapter);
-	}
-*/
 	/** Sets the window's icon.
 	 * 
 	 * @param pic icon to display
