@@ -452,8 +452,7 @@ public class Search extends PlugInWindow {
 		//	    System.out.println("n: " + n + ", end: " + end);
 		String word = "";
 		while (start < finish
-			&& !(word = getWord(text, start, finish)).equals("")) {
-			//			System.out.println("word: " + word);
+			&& !(word = LibTTx.getWord(text, start, finish)).equals("")) {
 			if (word.equals(quarry)) {
 				return text.indexOf(quarry, start);
 			} else {
@@ -463,41 +462,6 @@ public class Search extends PlugInWindow {
 		return -1;
 	}
 
-	/** Gets the next whole word from a given position, assuming that the position
-	 * is not in the middle of a word.
-	 * @param text text to search
-	 * @param start index at which to start
-	 * @param finish first index at which to stop searching, though the word may extend 
-	 * to or past this index
-	 * @return the whole word
-	 */
-	public String getWord(String text, int start, int finish) {
-		int n = start; // becomes position of start of word
-		int end = start + 1; // becomes first character after word
-		//int len = end;
-		String specialChars = "_\'";
-		String word = "";
-		// skip over non-letters/non-digits
-		char c = 0;
-		while (n < finish
-			&& !Character.isLetterOrDigit(c = text.charAt(n))
-			&& specialChars.indexOf(c) < 0) {
-			//		System.out.println("skipped char: " + c);
-			n++;
-		}
-		if (n >= finish)
-			return "";
-		// progress to the end of a word
-		end = n + 1;
-		while (end < finish
-			&& (Character.isLetterOrDigit(c = text.charAt(end))
-				|| specialChars.indexOf(c) >= 0)) {
-			//		System.out.println("included char: " + c);
-			end++;
-		}
-		//		}
-		return text.substring(n, end);
-	}
 
 	/** Find and replace occurences of a given sequence.
 	Employs options for specific word searching, replacing all 
@@ -678,7 +642,7 @@ public class Search extends PlugInWindow {
 		// no need to check that getWord() has not skipped over non-word characters and 
 		// found a word beyond "end" since getWord() returns "" if the word 
 		//characters start after the "end"
-		while (start < end && !(word = getWord(s, start, end)).equals("")) {
+		while (start < end && !(word = LibTTx.getWord(s, start, end)).equals("")) {
 			start = s.indexOf(word, start) + word.length();
 			n++;
 		}
