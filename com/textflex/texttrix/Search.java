@@ -19,11 +19,11 @@ import java.awt.event.*;
     the potentially modified text as well as any positions to highlight.
 */
 public class Search extends PlugIn {
-	FindDialog diag = null; // the dialog window for user options
+	private FindDialog diag = null; // the dialog window for user options
 	// whether to run find() or replace() after pressing a button,
 	// which causes TextTrix to lauch the plug-in's single runPlugIn() command
-	boolean invokeReplace = false;
-	boolean stats = false;
+	private boolean invokeReplace = false;
+	private boolean stats = false;
 
 	/** Creates the search plug-in.
 	Sets <code>ignoreSelection</code> to <code>false</code> so that
@@ -195,6 +195,7 @@ public class Search extends PlugIn {
 		// TextTrix from highlighting when there's nothing to highlight
 		int selectionStart = -1;
 		int selectionEnd = -1;
+		boolean noTextChange = false;
 
 		// Acts according to whether the plug-in is set to the 
 		// "find" or "replace" modes
@@ -205,7 +206,7 @@ public class Search extends PlugIn {
 			// otherwise, searches the entire text from the caret
 			// position or the end of the highlighted section forward
 //			selectionEnd = diag.getSelection() ? y : s.length();
-			System.out.println("x: " + x + ", y: " + y);
+//			System.out.println("x: " + x + ", y: " + y);
 			if (diag.getSelection()) {
 				s = replace(
 				s,
@@ -230,6 +231,7 @@ public class Search extends PlugIn {
 			}
 				
 		} else if (stats) {
+			noTextChange = true;
 			int start = x;
 			int end = s.length();
 			if (diag.getSelection()) {
@@ -242,6 +244,7 @@ public class Search extends PlugIn {
 			diag.setWordCountLbl(wordCount(s, start, end) + "");
 			diag.setLineCountLbl(lineCount(s, start, end) + "");
 		} else { // "find" mode
+			noTextChange = true;
 			String findText = diag.getFindText();
 			// as in "replace" mode, "find" mode confines its search to 
 			// highlighted text only if the Selection option is checked;
@@ -279,7 +282,7 @@ public class Search extends PlugIn {
 				selectionEnd = selectionStart + findText.length();
 		}
 //		invokeReplace = false; // reset the dialog box
-		return new PlugInOutcome(s, selectionStart, selectionEnd);
+		return new PlugInOutcome(s, selectionStart, selectionEnd, noTextChange);
 	}
 
 	/** Starts the plug-in by displaing the options dialog for users
@@ -371,12 +374,12 @@ public class Search extends PlugIn {
 		String word = "";
 		while (start < finish
 			&& !(word = getWord(text, start, finish)).equals("")) {
+			System.out.println("word: " + word);
 			if (word.equals(quarry)) {
 				return text.indexOf(quarry, start);
 			} else {
 				start = text.indexOf(word, start) + word.length();
 			}
-			System.out.println("word: " + word);
 		}
 		/*
 		if (end <= finish
@@ -575,6 +578,7 @@ public class Search extends PlugIn {
 	}
 	
 	public int charCount(int start, int end) {
+		System.out.println("char count: " + (end - start));
 		return end - start;
 	}
 	
@@ -582,27 +586,37 @@ public class Search extends PlugIn {
 		int n = 0;
 		String word = "";
 		while (start < end && !(word = getWord(s, start, end)).equals("")) {
-			start = s.indexOf(word) + word.length();
+			start = s.indexOf(word, start) + word.length();
+			System.out.println("word: " + word);
 			n++;
 		}
+		System.out.println("word count: " + n);
 		return n;
 	}
 	
 	public int lineCount(String s, int start, int end) {
-		int n = 0;
+		int n = 1; // must have at least one line, which does not terminate in a "\n"
 		while ((start = s.indexOf("\n", start)) >= 0 && start < end) {
 			start++;
 			n++;
 		}
+		System.out.println("line count: " + n);
 		return n;
 	}
 }
+
+
+
+
+
+
 
 /** Find and replace dialog.
     Creates a dialog box accepting input for search and replacement 
     expressions as well as options to tailor the search.
 */
 class FindDialog extends JDialog {
+	JLabel tips = null; // offers tips on using the plug-in 
 	JTextField find = null;; // search expression input
 	JTextField replace = null;; // replacement expression input
 	JCheckBox word = null;; // treat the search expression as a separate word
@@ -674,101 +688,75 @@ class FindDialog extends JDialog {
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.anchor = GridBagConstraints.CENTER;
 		String msg = "";
+		
+		// tips display
+		String lbl = "Tip: All searches and statistics start from the caret";
+		add(tips = new JLabel(lbl), constraints, 0, 0, 3, 1, 100, 0);
 
 		// search expression input
-		add(new JLabel("Find:"), constraints, 0, 0, 1, 1, 100, 0);
-		add(find = new JTextField(20), constraints, 1, 0, 2, 1, 100, 0);
+		add(new JLabel("Find:"), constraints, 0, 1, 1, 1, 100, 0);
+		add(find = new JTextField(20), constraints, 1, 1, 2, 1, 100, 0);
 		find.addKeyListener(findEnter);
 
 		// replace expression input
-		add(new JLabel("Replace:"), constraints, 0, 1, 1, 1, 100, 0);
-		add(replace = new JTextField(20), constraints, 1, 1, 2, 1, 100, 0);
+		add(new JLabel("Replace:"), constraints, 0, 2, 1, 1, 100, 0);
+		add(replace = new JTextField(20), constraints, 1, 2, 2, 1, 100, 0);
 		replace.addKeyListener(replaceEnter);
 
 		// treat search expression as a separate word
-		add(
-			word = new JCheckBox("Whole word only"),
-			constraints,
-			0,
-			2,
-			1,
-			1,
-			100,
-			0);
+		lbl = "Whole word only";
+		add(word = new JCheckBox(lbl), constraints, 0,	3,	1,	1,	100,	0);
 		word.setMnemonic(KeyEvent.VK_N);
 		msg = "Search for the expression as a separate word";
 		word.setToolTipText(msg);
 
 		// wrap search through start of text if necessary
-		add(wrap = new JCheckBox("Wrap"), constraints, 2, 2, 1, 1, 100, 0);
+		add(wrap = new JCheckBox("Wrap"), constraints, 2, 3, 1, 1, 100, 0);
 		wrap.setMnemonic(KeyEvent.VK_A);
 		msg = "Start searching from the cursor and wrap back to it";
 		wrap.setToolTipText(msg);
 
 		// replace all instances within highlighted section
-		add(
-			selection = new JCheckBox("Search within selection"),
-			constraints,
-			1,
-			2,
-			1,
-			1,
-			100,
-			0);
-		selection.setMnemonic(KeyEvent.VK_S);
+		lbl = "Search within selection";
+		add(selection = new JCheckBox(lbl),	constraints, 1, 3, 1, 1, 100, 0);
+		selection.setMnemonic(KeyEvent.VK_W);
 		msg =
 			"Search and replace text within only the " + "highlighted section";
 		selection.setToolTipText(msg);
 
 		// replace all instances from cursor to end of text unless 
 		// combined with wrap, where replace all instances in whole text
-		add(
-			replaceAll = new JCheckBox("Replace all"),
-			constraints,
-			0,
-			3,
-			1,
-			1,
-			100,
-			0);
+		add(replaceAll = new JCheckBox("Replace all"), constraints, 0, 4, 1, 1, 100, 0);
 		replaceAll.setMnemonic(KeyEvent.VK_L);
 		msg = "Replace all instances of the expression";
 		replaceAll.setToolTipText(msg);
 
 		// ignore upper/lower case while searching
-		add(
-			ignoreCase = new JCheckBox("Ignore case"),
-			constraints,
-			1,
-			3,
-			1,
-			1,
-			100,
-			0);
+		add(ignoreCase = new JCheckBox("Ignore case"), constraints, 1, 4, 1, 1, 100, 0);
 		ignoreCase.setMnemonic(KeyEvent.VK_I);
 		msg =
 			"Search for both lower and upper case versions "
 				+ "of the expression";
 		ignoreCase.setToolTipText(msg);
 
-		add(new JButton(findAction), constraints, 0, 4, 1, 1, 100, 0);
+		add(new JButton(findAction), constraints, 0, 5, 1, 1, 100, 0);
 
 		// find and replace action, using appropriate options above
-		add(new JButton(replaceAction), constraints, 1, 4, 1, 1, 100, 0);
+		add(new JButton(replaceAction), constraints, 1, 5, 1, 1, 100, 0);
 
-		add(new JButton(statsAction), constraints, 2, 4, 1, 1, 100, 0);
-
-		// search expression input
-		add(new JLabel("Characters:"), constraints, 0, 5, 2, 1, 100, 0);
-		add(charCountLbl = new JLabel(""), constraints, 2, 5, 1, 1, 100, 0);
+		add(new JButton(statsAction), constraints, 2, 5, 1, 1, 100, 0);
 
 		// search expression input
-		add(new JLabel("Words:"), constraints, 0, 6, 2, 1, 100, 0);
-		add(wordCountLbl = new JLabel(""), constraints, 2, 6, 1, 1, 100, 0);
+		add(new JLabel("Characters:"), constraints, 0, 6, 2, 1, 100, 0);
+		add(charCountLbl = new JLabel(""), constraints, 2, 6, 1, 1, 100, 0);
 
 		// search expression input
-		add(new JLabel("Lines:"), constraints, 0, 7, 2, 1, 100, 0);
-		add(lineCountLbl = new JLabel(""), constraints, 2, 7, 1, 1, 100, 0);
+		add(new JLabel("Words:"), constraints, 0, 7, 2, 1, 100, 0);
+		add(wordCountLbl = new JLabel(""), constraints, 2, 7, 1, 1, 100, 0);
+
+		// search expression input
+		add(new JLabel("Lines:"), constraints, 0, 8, 2, 1, 100, 0);
+		add(lineCountLbl = new JLabel(""), constraints, 2, 8, 1, 1, 100, 0);
 	}
 
 	/**Adds a new component to the <code>GridBagLayout</code> manager.
