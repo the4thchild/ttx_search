@@ -257,8 +257,11 @@ public class Search extends PlugInWindow {
 		boolean find = false;
 		String selectedText = "";
 		
-		// reset results lable
+		// reset results label
 		diag.setResultsLbl("");
+		
+		// cycle tips label
+		diag.setTipsLbl(1);
 		
 		//System.out.println("selected text: " + s.substring(x, y));
 		// Acts according to whether the plug-in is set to the 
@@ -285,8 +288,8 @@ public class Search extends PlugInWindow {
 			newstr =
 				replace(
 					s,
-					diag.getFindText(),
-					diag.getReplaceText(),
+					diag.getFindTextConverted(),
+					diag.getReplaceTextConverted(),
 					x,
 					y,
 					diag.getWord(),
@@ -294,27 +297,27 @@ public class Search extends PlugInWindow {
 					
 		} else if (invokeReplace 
 			&& x != y
-			&& ((selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindText())
+			&& ((selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindTextConverted())
 					&& diag.getIgnoreCase())
-				|| selectedText.equals(diag.getFindText())) {
+				|| selectedText.equals(diag.getFindTextConverted())) {
 			// replaces single instance of quarry, only if already highlighted;
 			// otherwise, defaults to find mode to highlight the quarry
 			String[] results = new String[] {
 				"Replaced " + selectedText + " with " 
-					+ diag.getReplaceText() + " once.",
-				"Boys and girls, Mr. " + diag.getReplaceText() 
+					+ diag.getReplaceTextConverted() + " once.",
+				"Boys and girls, Mr. " + diag.getReplaceTextConverted() 
 					+ " will be your substitute teacher today.",
 				selectedText + ", you're fired!",
-				diag.getReplaceText() + ", you're hired!"
+				diag.getReplaceTextConverted() + ", you're hired!"
 			};
 			displayResults(results, 4);
 			return new PlugInOutcome(
-				diag.getReplaceText(), 
+				diag.getReplaceTextConverted(), 
 				selectionStart, 
 				selectionEnd,
 				x,
 				y);
-			//newstr = s.substring(0, x) + diag.getReplaceText() + s.substring(y);
+			//newstr = s.substring(0, x) + diag.getReplaceTextConverted() + s.substring(y);
 			
 		} else if (stats) { // "stats" mode
 			// Assume only working from caret position or start of selected 
@@ -345,7 +348,7 @@ public class Search extends PlugInWindow {
 		
 		// Find mode
 		if (find) {
-			String findText = diag.getFindText();
+			String findText = diag.getFindTextConverted();
 			// as in "replace" mode, "find" mode confines its search to 
 			// highlighted text only if the Selection option is checked;
 			// if not, "find" starts searching from the start of any 
@@ -404,8 +407,8 @@ public class Search extends PlugInWindow {
 	}
 	
 	private void displayResults(String[] results, int weightFront) {
-		int n = (int) (results.length * Math.pow(Math.random(), weightFront));
-		diag.setResultsLbl(results[n]);
+//		int n = (int) (results.length * Math.pow(Math.random(), weightFront));
+		diag.setResultsLbl(LibTTx.pickWeightedStr(results, weightFront));
 	}
 	
 	/**Find a the first occurrence of a given sequence in a string.
@@ -805,7 +808,8 @@ public class Search extends PlugInWindow {
     expressions as well as options to tailor the search.
 */
 class FindDialog extends JPanel {//JFrame {
-	JLabel tips = null; // offers tips on using the plug-in 
+	JLabel tipsTitleLbl = null; // offers tips on using the plug-in 
+	JLabel tipsLbl = null;
 	JLabel findLbl = null; // label for the search field
 	JTextField find = null; // search expression input
 	JLabel replaceLbl = null; // label for the replacement field
@@ -826,7 +830,12 @@ class FindDialog extends JPanel {//JFrame {
 	JLabel charCountLbl = null; // the actual character count
 	JLabel wordCountLbl = null; // the actual word count
 	JLabel lineCountLbl = null; // the actual line count
-
+	String[] tips = {
+		"Searches and statistics begin from the cursor or start of selected area",
+		"Use \\^t for TABs and \\^n for NEWLINES",
+		"Stats available for \"Selected area only\", too"
+	};
+		
 	/**Construct a find/replace dialog box
 	 * @param owner frame to which the dialog box will be attached; 
 	 * can be null
@@ -846,20 +855,34 @@ class FindDialog extends JPanel {//JFrame {
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.anchor = GridBagConstraints.CENTER;
 		String msg = "";
+		String lbl = "";
+		
 
 		// tips display
-		String lbl = "Tip: Searches and statistics begin from the cursor or start of selected area";
-		tips = new JLabel(lbl);
+		tipsTitleLbl = new JLabel("Tips: ");
 		LibTTx.addGridBagComponent(
-			tips,
+			tipsTitleLbl,
 			constraints,
 			0,
 			0,
-			3,
+			1,
 			1,
 			100,
 			0,
 			this);//contentPane);
+		tipsLbl = new JLabel("");
+		tipsLbl.setHorizontalAlignment(JLabel.RIGHT);
+		LibTTx.addGridBagComponent(
+			tipsLbl,
+			constraints,
+			1,
+			0,
+			2,
+			1,
+			100,
+			0,
+			this);
+		setTipsLbl(4);
 
 		// search expression input
 		findLbl = new JLabel("Find:");
@@ -1011,7 +1034,7 @@ class FindDialog extends JPanel {//JFrame {
 		ignoreCase.setToolTipText(msg);
 		
 		
-		resultsTitleLbl = new JLabel("Reults: ");
+		resultsTitleLbl = new JLabel("Results: ");
 		LibTTx.addGridBagComponent(
 			resultsTitleLbl,
 			constraints,
@@ -1213,6 +1236,10 @@ class FindDialog extends JPanel {//JFrame {
 	public String getFindText() {
 		return find.getText();
 	}
+	
+	public String getFindTextConverted() {
+		return LibTTx.convertEscapeChars(find.getText());
+	}
 
 	/** Gets the value of the "replace" text field.
 	 * 
@@ -1220,6 +1247,14 @@ class FindDialog extends JPanel {//JFrame {
 	 */
 	public String getReplaceText() {
 		return replace.getText();
+	}
+
+	/** Gets the value of the "replace" text field.
+	 * 
+	 * @return value of the <code>replace JCheckBox</code>
+	 */
+	public String getReplaceTextConverted() {
+		return LibTTx.convertEscapeChars(replace.getText());
 	}
 
 	/** Sets the value of the "charCountLbl" counter.
@@ -1251,6 +1286,10 @@ class FindDialog extends JPanel {//JFrame {
 	*/
 	public void setResultsLbl(String s) {
 		resultsLbl.setText(s);
+	}
+	
+	public void setTipsLbl(int weightedFront) {
+		tipsLbl.setText(LibTTx.pickWeightedStr(tips, weightedFront));
 	}
 
 }
