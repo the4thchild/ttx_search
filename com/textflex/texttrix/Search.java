@@ -210,10 +210,17 @@ public class Search extends PlugIn {
 	of text.
 	@param s text to search; all of it will be searched
 	@return the modified text and positions to highlight
-	*/
+	*
 	public PlugInOutcome run(String s, int caretPosition) {
 		return run(s, caretPosition, caretPosition);
 	}
+	*/
+	
+	
+	public PlugInOutcome run(String s) {
+		return run(s, 0, 0);
+	}
+	
 
 	/** Runs the search tool in the appropriate mode, whether "find" 
 	or "replace".
