@@ -418,7 +418,7 @@ public class Search extends PlugInWindow {
 		int loc = -1;
 		if (start < text.length()) {
 			loc = text.indexOf(quarry, start);
-			if (loc < end) {
+			if (loc < end && loc != -1) {
 				String[] results = new String[] {
 					"Found " + quarry + ".",
 					"Eureka!  I found " + quarry + ".",
@@ -1088,7 +1088,7 @@ class FindDialog extends JPanel {//JFrame {
 			0,
 			this);//contentPane);
 		charCountLbl = new JLabel("");
-		charCountLbl.setHorizontalTextPosition(JLabel.RIGHT);
+		charCountLbl.setHorizontalAlignment(JLabel.RIGHT);
 		LibTTx.addGridBagComponent(
 			charCountLbl,
 			constraints,
@@ -1113,7 +1113,7 @@ class FindDialog extends JPanel {//JFrame {
 			0,
 			this);//contentPane);
 		wordCountLbl = new JLabel("");
-		wordCountLbl.setHorizontalTextPosition(JLabel.RIGHT);
+		wordCountLbl.setHorizontalAlignment(JLabel.RIGHT);
 		LibTTx.addGridBagComponent(
 			wordCountLbl,
 			constraints,
@@ -1138,7 +1138,7 @@ class FindDialog extends JPanel {//JFrame {
 			0,
 			this);//contentPane);
 		lineCountLbl = new JLabel("");
-		lineCountLbl.setHorizontalTextPosition(JLabel.RIGHT);
+		lineCountLbl.setHorizontalAlignment(JLabel.RIGHT);
 		LibTTx.addGridBagComponent(
 			lineCountLbl,
 			constraints,
