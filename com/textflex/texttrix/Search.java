@@ -348,8 +348,28 @@ public class Search extends PlugIn {
 	with which to replace, and start the search.
 	*/
 	public void startPlugIn() {
+		setTmpActivated(true);
 		diag.setVisible(true);//show(); DEPRECATED as of JVM v.1.5.0
 	}
+
+	public void addWindowAdapter() {
+		diag.addWindowAdapter(getWindowAdapter());
+	}
+	
+	public void activateWindow() {
+		diag.toFront();
+	}
+	/*
+	public boolean isWindowVisible() {
+		return diag.isVisible();
+	}
+	
+	public void reloadWindow() {
+		diag.setVisible(false);
+		setTmpActivated(true);
+		diag.setVisible(true);
+	}
+	*/
 
 	/**Find a the first occurrence of a given sequence in a string.
 	 * @param text string to search
@@ -985,6 +1005,10 @@ class FindDialog extends JFrame {
 			100,
 			0,
 			contentPane);
+	}
+
+	public void addWindowAdapter(WindowAdapter adapter) {
+		addWindowListener(adapter);
 	}
 
 	/** Sets the window's icon.
