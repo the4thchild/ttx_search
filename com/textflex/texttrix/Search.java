@@ -82,13 +82,11 @@ public class Search extends PlugIn {
 
 		// Runs the search tool in "find" mode if the user hits "Enter" in 
 		// the "Find" box;
-		// ASSUMES: invokeReplace == false
 		KeyAdapter findEnter = new KeyAdapter() {
 			public void keyPressed(KeyEvent evt) {
 				if (evt.getKeyCode() == KeyEvent.VK_ENTER)
 					setAllRuns(false);
 				runPlugIn();
-				//			find();
 			}
 		};
 
@@ -101,7 +99,6 @@ public class Search extends PlugIn {
 					setAllRuns(false);
 					invokeReplace = true;
 					runPlugIn();
-					//			findReplace();
 				}
 			}
 		};
@@ -110,12 +107,10 @@ public class Search extends PlugIn {
 		// button;
 		// creates a shortcut key (alt-F) as an alternative way to invoke
 		// the button
-		// ASSUMES: invokeReplace == false
 		Action findAction = new AbstractAction("Find", null) {
 			public void actionPerformed(ActionEvent e) {
 				setAllRuns(false);
 				runPlugIn();
-				//		    find();
 			}
 		};
 		LibTTx.setAcceleratedAction(
@@ -134,7 +129,6 @@ public class Search extends PlugIn {
 				invokeReplace = true;
 				// flag runPlugIn() to run in "replace" mode
 				runPlugIn();
-				//			findReplace();
 			}
 		};
 		LibTTx.setAcceleratedAction(
@@ -152,7 +146,6 @@ public class Search extends PlugIn {
 				setAllRuns(false);
 				stats = true; // flag runPlugIn() to run in "replace" mode
 				runPlugIn();
-				//			findReplace();
 			}
 		};
 		LibTTx.setAcceleratedAction(
@@ -160,7 +153,8 @@ public class Search extends PlugIn {
 			"Statistics",
 			'S',
 			KeyStroke.getKeyStroke("alt S"));
-
+		
+//		createIcon();
 		// Creates the options dialog window
 		diag =
 			new FindDialog(
@@ -170,7 +164,12 @@ public class Search extends PlugIn {
 				replaceAction,
 				statsAction);
 	}
-
+	
+	/** Sets all run-time flags to the given boolean value.
+	 * For example, both <code>invokeReplace</code> and <code>stats</code> become
+	 * <code>b</code>
+	 * @param b boolean value for the flags to become
+	 */
 	public void setAllRuns(boolean b) {
 		invokeReplace = b;
 		stats = b;
@@ -180,14 +179,30 @@ public class Search extends PlugIn {
 	@return normal icon
 	*/
 	public ImageIcon getIcon() {
-		return super.getIcon(getIconPath());
+//		ImageIcon pic = ;
+/*
+		if (getStoredIcon() == null)
+			createIcon(getIconPath());
+//		System.out.println("icon loaded: " + (pic != null));
+		System.out.println("stored icon loaded: " + (getStoredIcon() != null));
+		*/
+		ImageIcon pic = getIcon(getIconPath());
+		diag.setIconImage(pic);//getStoredIcon());
+		return pic;//getStoredIcon();
 	}
+	
 
 	/** Gets the rollover icon.
 	@return rollover icon
 	*/
 	public ImageIcon getRollIcon() {
-		return super.getIcon(getRollIconPath());
+//		ImageIcon pic = getStoredRollIcon();
+/*
+		if (getStoredRollIcon() == null) 
+			createRollIcon(getRollIconPath());
+		return getStoredRollIcon();
+		*/
+		return getRollIcon(getRollIconPath());
 	}
 
 	/** Gets the detailed, HTML-formatted description.
@@ -197,12 +212,6 @@ public class Search extends PlugIn {
 	public BufferedReader getDetailedDescription() {
 		return super.getDetailedDescription(getDetailedDescriptionPath());
 	}
-
-	/*    
-	public static void invokeRun() {
-	runPlugIn();
-	}
-	*/
 
 	/** Front-end to the <code>run(String, int, int)</code> method,
 	assuming that <code>Search</code> will work on the entire body
@@ -232,25 +241,24 @@ public class Search extends PlugIn {
 	@return the modified text and positions to highlight
 	*/
 	public PlugInOutcome run(String s, int x, int y) {
-		//	find.setText(s);
 		// the critical variable to keep in default setting to prevent
 		// TextTrix from highlighting when there's nothing to highlight
 		int selectionStart = -1;
 		int selectionEnd = -1;
-		boolean noTextChange = false;
 		String newstr = s;
 
 		// Acts according to whether the plug-in is set to the 
 		// "find" or "replace" modes
 		if (invokeReplace) { // "replace" mode
-			//	    selectionStart = x;
 			// confines the search to within the highlighted section
 			// only if the Selection option is checked; 
 			// otherwise, searches the entire text from the caret
 			// position or the end of the highlighted section forward
-			//			selectionEnd = diag.getSelection() ? y : s.length();
+			
 			//			System.out.println("x: " + x + ", y: " + y);
-			if (diag.getSelection()) {
+			
+			// Passes only the selected section if flagged to do so
+			if (diag.getSelection()) { // highlighted text only
 				newstr =
 					replace(
 						s,
@@ -262,7 +270,7 @@ public class Search extends PlugIn {
 						diag.getReplaceAll(),
 						diag.getWrap(),
 						diag.getIgnoreCase());
-			} else {
+			} else { // from caret onward; replace() determines whether to wrap
 				newstr =
 					replace(
 						s,
@@ -275,13 +283,15 @@ public class Search extends PlugIn {
 						diag.getIgnoreCase());
 			}
 
-		} else if (stats) {
+		} else if (stats) { // "stats" mode
+			// Assume only working from caret position onward
 			int start = x;
 			int end = s.length();
-			if (diag.getSelection()) {
+			// Passes only selected text if flagged to do so
+			if (diag.getSelection()) { // highlighted text only
 				start = x;
 				end = y;
-			} else if (diag.getWrap()) {
+			} else if (diag.getWrap()) { // entire text
 				start = 0;
 			}
 			diag.setCharCountLbl(charCount(start, end) + "");
@@ -324,8 +334,7 @@ public class Search extends PlugIn {
 			if (selectionStart != -1)
 				selectionEnd = selectionStart + findText.length();
 		}
-		//		invokeReplace = false; // reset the dialog box
-		noTextChange = s.equals(newstr);
+		boolean noTextChange = s.equals(newstr); // "find" and "stats" mode don't alter the text
 		return new PlugInOutcome(newstr, selectionStart, selectionEnd, noTextChange);
 	}
 
@@ -362,7 +371,17 @@ public class Search extends PlugIn {
 			return (loc = text.indexOf(quarry, start)) >= end ? -1 : loc;
 		return -1;
 	}
-
+	
+	/**Front-end to the <code>find</code> methods with the assumption that the search
+	 * starts from the caret position.
+	 * @param text string to search
+	 * @param quarry sequence to search for
+	 * @param start index to start searching
+	 * @param word if true, treat the sequence as a separate word, with only
+	 * non-letters/non-digits surrounding it
+	 * @param ignoreCase if true, ignore upper/lower case
+	 * @return index of sequence's start in the string; -1 if not found
+	 */	
 	public int find(
 		String text,
 		String quarry,
@@ -394,10 +413,13 @@ public class Search extends PlugIn {
 		int end,
 		boolean word,
 		boolean ignoreCase) {
+		// if ignoring the distinction between upper/lower case, pass both "quarry"
+		// and the entire text as lower case
 		if (ignoreCase) {
 			text = text.toLowerCase();
 			quarry = quarry.toLowerCase();
 		}
+		// if only searching for whole words, use findWord(); otherwise, use findSeq()
 		return word
 			? findWord(text, quarry, start, end)
 			: findSeq(text, quarry, start, end);
@@ -418,36 +440,30 @@ public class Search extends PlugIn {
 		String word = "";
 		while (start < finish
 			&& !(word = getWord(text, start, finish)).equals("")) {
-			System.out.println("word: " + word);
+//			System.out.println("word: " + word);
 			if (word.equals(quarry)) {
 				return text.indexOf(quarry, start);
 			} else {
 				start = text.indexOf(word, start) + word.length();
 			}
 		}
-		/*
-		if (end <= finish
-			&& text.substring(n, end).equals(quarry)
-			&& n < finish) {
-			return n;
-			// continue search with next word if no match yet
-		} else {
-			n = end;
-			//		end++;
-		}
-		}
-		*/
 		return -1;
 	}
-
+	
+	/** Gets the next whole word from a given position, assuming that the position
+	 * is not in the middle of a word.
+	 * @param text text to search
+	 * @param start index at which to start
+	 * @param finish first index at which to stop searching, though the word may extend 
+	 * to or past this index
+	 * @return the whole word
+	 */
 	public String getWord(String text, int start, int finish) {
 		int n = start; // becomes position of start of word
 		int end = start + 1; // becomes first character after word
 		//int len = end;
 		String specialChars = "_\'";
 		String word = "";
-		//	System.out.println(text);
-		//		while (n < finish) {
 		// skip over non-letters/non-digits
 		char c = 0;
 		while (n < finish
@@ -622,23 +638,49 @@ public class Search extends PlugIn {
 			ignoreCase);
 	}
 
+	/** Counts the number of characters betwen two indices, including the first but not
+	 * the last index.
+	 * @param start first character to count
+	 * @param end first charcter to no longer count
+	 * @return number of characters
+	 */
 	public int charCount(int start, int end) {
-		System.out.println("char count: " + (end - start));
+//		System.out.println("char count: " + (end - start));
 		return end - start;
 	}
-
+	
+	/** Counts the number of words between two indices, inluding the first but not
+	 * the last index.
+	 * If the starting position is in the middle of a word, that word will still be counted.
+	 * 
+	 * @param s first position to count
+	 * @param start first character to start searching for whole words
+	 * @param end first character to stop searching for whole words
+	 * @return number of whole words
+	 */
 	public int wordCount(String s, int start, int end) {
 		int n = 0;
 		String word = "";
+		// ensures that the word does not start after "end" and is not empty;
+		// no need to check that getWord() has not skipped over non-word characters and 
+		// found a word beyond "end" since getWord() returns "" if the word 
+		//characters start after the "end"
 		while (start < end && !(word = getWord(s, start, end)).equals("")) {
 			start = s.indexOf(word, start) + word.length();
-			System.out.println("word: " + word);
+//			System.out.println("word: " + word);
 			n++;
 		}
-		System.out.println("word count: " + n);
+//		System.out.println("word count: " + n);
 		return n;
 	}
-
+	
+	/** Counts the number of lines.
+	 * 
+	 * @param s text to search
+	 * @param start starting line
+	 * @param end ending line
+	 * @return number of lines
+	 */
 	public int lineCount(String s, int start, int end) {
 		int n = 1;
 		// must have at least one line, which does not terminate in a "\n"
@@ -646,7 +688,7 @@ public class Search extends PlugIn {
 			start++;
 			n++;
 		}
-		System.out.println("line count: " + n);
+//		System.out.println("line count: " + n);
 		return n;
 	}
 }
@@ -655,68 +697,118 @@ public class Search extends PlugIn {
     Creates a dialog box accepting input for search and replacement 
     expressions as well as options to tailor the search.
 */
-class FindDialog extends JDialog {
+class FindDialog extends JFrame {
 	JLabel tips = null; // offers tips on using the plug-in 
-	JLabel findLbl = null;
+	JLabel findLbl = null; // label for the search field
 	JTextField find = null; // search expression input
-	JLabel replaceLbl = null;
+	JLabel replaceLbl = null; // label for the replacement field
 	JTextField replace = null; // replacement expression input
 	JCheckBox word = null; // treat the search expression as a separate word
 	JCheckBox wrap = null; // search to the bottom and start again from the top
 	JCheckBox selection = null; // search only within a highlighted section
 	JCheckBox replaceAll = null; // replace all instances of search expression
 	JCheckBox ignoreCase = null; // ignore upper/lower case
-	JButton findBtn = null;
-	JButton replaceBtn = null;
-	JButton statsBtn = null;
-	JLabel charLbl = null;
-	JLabel wordLbl = null;
-	JLabel lineLbl = null;
-	JLabel charCountLbl = null;
-	JLabel wordCountLbl = null;
-	JLabel lineCountLbl = null;
-	/*
-	  String text = null;
-	  int selectionStart = -1;
-	  int selectionEnd = -1;
-	*
+	JButton findBtn = null; // label for the search button
+	JButton replaceBtn = null; // label for the replace button
+	JButton statsBtn = null; // label for the stats button
+	JLabel charLbl = null; // label for the stats char value
+	JLabel wordLbl = null; // label for the stats word value
+	JLabel lineLbl = null; // label for the stats line value
+	JLabel charCountLbl = null; // the actual character count
+	JLabel wordCountLbl = null; // the actual word count
+	JLabel lineCountLbl = null; // the actual line count
 	
-	public void setInvokeReplace(boolean aInvokeReplace) { 
-	invokeReplace = aInvokeReplace;
-	}
-	*/
-
+	/** Gets the value of the "word" check box.
+	 * 
+	 * @return value of the <code>word JCheckBox</code>
+	 */
 	public boolean getWord() {
 		return word.isSelected();
 	}
+	
+	/** Gets the value of the "wrap" check box.
+	 * 
+	 * @return value of the <code>warp JCheckBox</code>
+	 */
 	public boolean getWrap() {
 		return wrap.isSelected();
 	}
+	
+	/** Gets the value of the "selection" check box.
+	 * 
+	 * @return value of the <code>selection JCheckBox</code>
+	 */
 	public boolean getSelection() {
 		return selection.isSelected();
 	}
+	
+	/** Gets the value of the "replaceAll" check box.
+	 * 
+	 * @return value of the <code>replaceAll JCheckBox</code>
+	 */
 	public boolean getReplaceAll() {
 		return replaceAll.isSelected();
 	}
+	
+	/** Gets the value of the "ignoreCase" check box.
+	 * 
+	 * @return value of the <code>ignoreCase JCheckBox</code>
+	 */
 	public boolean getIgnoreCase() {
 		return ignoreCase.isSelected();
 	}
+	
+	/** Gets the value in the "find" text field.
+	 * 
+	 * @return value in the <code>find JFrame</code>
+	 */
 	public String getFindText() {
 		return find.getText();
 	}
+	
+	/** Gets the value of the "replace" text field.
+	 * 
+	 * @return value of the <code>replace JCheckBox</code>
+	 */
 	public String getReplaceText() {
 		return replace.getText();
 	}
-
+	
+	
+	
+	
+	
+	
+	
+	/** Sets the value of the "charCountLbl" counter.
+	 * 
+	 * @return value of the <code>charCountLbl JLbl</code>
+	 */
 	public void setCharCountLbl(String s) {
 		charCountLbl.setText(s);
 	}
+	
+	/** Gets the value of the "wordCountLbl" counter.
+	 * 
+	 * @return value of the <code>wordCountLbl JLbl</code>
+	 */
 	public void setWordCountLbl(String s) {
 		wordCountLbl.setText(s);
 	}
+	
+	/** Gets the value of the "lineCountLbl" counter.
+	 * 
+	 * @return value of the <code>lineCountLbl JLbl</code>
+	 */
 	public void setLineCountLbl(String s) {
 		lineCountLbl.setText(s);
 	}
+
+
+
+
+
+
 
 	/**Construct a find/replace dialog box
 	 * @param owner frame to which the dialog box will be attached; 
@@ -728,7 +820,7 @@ class FindDialog extends JDialog {
 		Action findAction,
 		Action replaceAction,
 		Action statsAction) {
-		super();
+		super("Search and Stats");
 		setSize(400, 200);
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new GridBagLayout());
@@ -796,13 +888,15 @@ class FindDialog extends JDialog {
 			"Searches for both lower and upper case versions of the expression";
 		ignoreCase.setToolTipText(msg);
 		
+		// fires the "find" action
 		findBtn = new JButton(findAction);
 		LibTTx.addGridBagComponent(findBtn, constraints, 0, 5, 1, 1, 100, 0, contentPane);
 
 		// find and replace action, using appropriate options above
 		replaceBtn = new JButton(replaceAction);
 		LibTTx.addGridBagComponent(replaceBtn, constraints, 1, 5, 1, 1, 100, 0, contentPane);
-
+		
+		// fires the "stats" action
 		statsBtn = new JButton(statsAction);
 		LibTTx.addGridBagComponent(statsBtn, constraints, 2, 5, 1, 1, 100, 0, contentPane);
 
@@ -823,5 +917,9 @@ class FindDialog extends JDialog {
 		LibTTx.addGridBagComponent(lineLbl, constraints, 0, 8, 2, 1, 100, 0, contentPane);
 		lineCountLbl = new JLabel("");
 		LibTTx.addGridBagComponent(lineCountLbl, constraints, 2, 8, 1, 1, 100, 0, contentPane);
+	}
+	
+	public void setIconImage(ImageIcon pic) {
+		setIconImage(pic.getImage());
 	}
 }
