@@ -56,7 +56,7 @@ import java.awt.event.*;
     on the currently selected tab.  The plug-in returns an object containing
     the potentially modified text as well as any positions to highlight.
 */
-public class Search extends PlugIn {
+public class Search extends PlugInWindow {
 	private FindDialog diag = null; // the dialog window for user options
 	// whether to run find() or replace() after pressing a button,
 	// which causes TextTrix to lauch the plug-in's single runPlugIn() command
@@ -165,6 +165,7 @@ public class Search extends PlugIn {
 				findAction,
 				replaceAction,
 				statsAction);
+		setWindow(diag);
 	}
 
 	/** Sets all run-time flags to the given boolean value.
@@ -346,7 +347,7 @@ public class Search extends PlugIn {
 	/** Starts the plug-in by displaing the options dialog for users
 	to choose their search options, enter the text to search or
 	with which to replace, and start the search.
-	*/
+	*
 	public void startPlugIn() {
 		setTmpActivated(true);
 		diag.setVisible(true);//show(); DEPRECATED as of JVM v.1.5.0
@@ -369,7 +370,7 @@ public class Search extends PlugIn {
 //		setTmpActivated(true);
 //		diag.setVisible(true);
 	}
-	
+	*/
 
 	/**Find a the first occurrence of a given sequence in a string.
 	 * @param text string to search
@@ -1007,10 +1008,11 @@ class FindDialog extends JFrame {
 			contentPane);
 	}
 
+/*
 	public void addWindowAdapter(WindowAdapter adapter) {
 		addWindowListener(adapter);
 	}
-
+*/
 	/** Sets the window's icon.
 	 * 
 	 * @param pic icon to display
