@@ -44,7 +44,9 @@ import java.awt.event.*;
 /** Plug-in to search documents for specific sequences of text and replace 
     them with alternatives if desired.  The plug-in can search for simple
     sequences or whole words, whether throughout the document, from the
-    cursor on, or only within the highlighted selection.
+    cursor on, or only within the highlighted selection.  Additionally, the plug-in
+    can generate statistical information for either the whole body of text or a 
+    specific section of it.
 
     <p>This search tool creates a dialog window for the user to enter
     the text to find and the text to replace it.  The window
@@ -72,7 +74,7 @@ public class Search extends PlugIn {
 	*/
 	public Search() {
 		super(
-			"Search",
+			"Search and Stats",
 			"tools",
 			"Finds and replaces words or phrases in the document",
 			"desc.html",
@@ -154,7 +156,6 @@ public class Search extends PlugIn {
 			'S',
 			KeyStroke.getKeyStroke("alt S"));
 		
-//		createIcon();
 		// Creates the options dialog window
 		diag =
 			new FindDialog(
@@ -179,16 +180,13 @@ public class Search extends PlugIn {
 	@return normal icon
 	*/
 	public ImageIcon getIcon() {
-//		ImageIcon pic = ;
-/*
-		if (getStoredIcon() == null)
-			createIcon(getIconPath());
-//		System.out.println("icon loaded: " + (pic != null));
-		System.out.println("stored icon loaded: " + (getStoredIcon() != null));
-		*/
 		ImageIcon pic = getIcon(getIconPath());
-		diag.setIconImage(pic);//getStoredIcon());
-		return pic;//getStoredIcon();
+		// getIcon(string) created the icon and retreived a copy of it;
+		// now the icon can be set to display in the options window;
+		// can't get the icon in the plug-in's constructor b/c the plug-in does not yet
+		// know its own path
+		diag.setIconImage(pic);
+		return pic;
 	}
 	
 
@@ -196,12 +194,6 @@ public class Search extends PlugIn {
 	@return rollover icon
 	*/
 	public ImageIcon getRollIcon() {
-//		ImageIcon pic = getStoredRollIcon();
-/*
-		if (getStoredRollIcon() == null) 
-			createRollIcon(getRollIconPath());
-		return getStoredRollIcon();
-		*/
 		return getRollIcon(getRollIconPath());
 	}
 
@@ -718,98 +710,6 @@ class FindDialog extends JFrame {
 	JLabel wordCountLbl = null; // the actual word count
 	JLabel lineCountLbl = null; // the actual line count
 	
-	/** Gets the value of the "word" check box.
-	 * 
-	 * @return value of the <code>word JCheckBox</code>
-	 */
-	public boolean getWord() {
-		return word.isSelected();
-	}
-	
-	/** Gets the value of the "wrap" check box.
-	 * 
-	 * @return value of the <code>warp JCheckBox</code>
-	 */
-	public boolean getWrap() {
-		return wrap.isSelected();
-	}
-	
-	/** Gets the value of the "selection" check box.
-	 * 
-	 * @return value of the <code>selection JCheckBox</code>
-	 */
-	public boolean getSelection() {
-		return selection.isSelected();
-	}
-	
-	/** Gets the value of the "replaceAll" check box.
-	 * 
-	 * @return value of the <code>replaceAll JCheckBox</code>
-	 */
-	public boolean getReplaceAll() {
-		return replaceAll.isSelected();
-	}
-	
-	/** Gets the value of the "ignoreCase" check box.
-	 * 
-	 * @return value of the <code>ignoreCase JCheckBox</code>
-	 */
-	public boolean getIgnoreCase() {
-		return ignoreCase.isSelected();
-	}
-	
-	/** Gets the value in the "find" text field.
-	 * 
-	 * @return value in the <code>find JFrame</code>
-	 */
-	public String getFindText() {
-		return find.getText();
-	}
-	
-	/** Gets the value of the "replace" text field.
-	 * 
-	 * @return value of the <code>replace JCheckBox</code>
-	 */
-	public String getReplaceText() {
-		return replace.getText();
-	}
-	
-	
-	
-	
-	
-	
-	
-	/** Sets the value of the "charCountLbl" counter.
-	 * 
-	 * @return value of the <code>charCountLbl JLbl</code>
-	 */
-	public void setCharCountLbl(String s) {
-		charCountLbl.setText(s);
-	}
-	
-	/** Gets the value of the "wordCountLbl" counter.
-	 * 
-	 * @return value of the <code>wordCountLbl JLbl</code>
-	 */
-	public void setWordCountLbl(String s) {
-		wordCountLbl.setText(s);
-	}
-	
-	/** Gets the value of the "lineCountLbl" counter.
-	 * 
-	 * @return value of the <code>lineCountLbl JLbl</code>
-	 */
-	public void setLineCountLbl(String s) {
-		lineCountLbl.setText(s);
-	}
-
-
-
-
-
-
-
 	/**Construct a find/replace dialog box
 	 * @param owner frame to which the dialog box will be attached; 
 	 * can be null
@@ -928,4 +828,96 @@ class FindDialog extends JFrame {
 		// receiving the plug-in's path to generate the icon
 		setIconImage(pic.getImage());
 	}
+	
+	
+	
+	
+	
+
+	/** Gets the value of the "word" check box.
+	 * 
+	 * @return value of the <code>word JCheckBox</code>
+	 */
+	public boolean getWord() {
+		return word.isSelected();
+	}
+	
+	/** Gets the value of the "wrap" check box.
+	 * 
+	 * @return value of the <code>warp JCheckBox</code>
+	 */
+	public boolean getWrap() {
+		return wrap.isSelected();
+	}
+	
+	/** Gets the value of the "selection" check box.
+	 * 
+	 * @return value of the <code>selection JCheckBox</code>
+	 */
+	public boolean getSelection() {
+		return selection.isSelected();
+	}
+	
+	/** Gets the value of the "replaceAll" check box.
+	 * 
+	 * @return value of the <code>replaceAll JCheckBox</code>
+	 */
+	public boolean getReplaceAll() {
+		return replaceAll.isSelected();
+	}
+	
+	/** Gets the value of the "ignoreCase" check box.
+	 * 
+	 * @return value of the <code>ignoreCase JCheckBox</code>
+	 */
+	public boolean getIgnoreCase() {
+		return ignoreCase.isSelected();
+	}
+	
+	/** Gets the value in the "find" text field.
+	 * 
+	 * @return value in the <code>find JFrame</code>
+	 */
+	public String getFindText() {
+		return find.getText();
+	}
+	
+	/** Gets the value of the "replace" text field.
+	 * 
+	 * @return value of the <code>replace JCheckBox</code>
+	 */
+	public String getReplaceText() {
+		return replace.getText();
+	}
+	
+	
+	
+	
+	
+	
+	
+	/** Sets the value of the "charCountLbl" counter.
+	 * 
+	 * @return value of the <code>charCountLbl JLbl</code>
+	 */
+	public void setCharCountLbl(String s) {
+		charCountLbl.setText(s);
+	}
+	
+	/** Gets the value of the "wordCountLbl" counter.
+	 * 
+	 * @return value of the <code>wordCountLbl JLbl</code>
+	 */
+	public void setWordCountLbl(String s) {
+		wordCountLbl.setText(s);
+	}
+	
+	/** Gets the value of the "lineCountLbl" counter.
+	 * 
+	 * @return value of the <code>lineCountLbl JLbl</code>
+	 */
+	public void setLineCountLbl(String s) {
+		lineCountLbl.setText(s);
+	}
+
 }
