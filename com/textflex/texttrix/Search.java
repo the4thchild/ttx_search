@@ -343,19 +343,6 @@ public class Search extends PlugIn {
 	 * @param quarry sequence to find
 	 * @param start index to start searching
 	 * @return index of the sequence's start in the string; -1 if not found
-	 *
-	public int find(String text, String quarry, int start) {
-	if (start < text.length())
-	    return text.indexOf(quarry, start);
-	return -1;
-	}
-	*/
-
-	/**Find a the first occurrence of a given sequence in a string.
-	 * @param text string to search
-	 * @param quarry sequence to find
-	 * @param start index to start searching
-	 * @return index of the sequence's start in the string; -1 if not found
 	 */
 	public int findSeq(String text, String quarry, int start, int end) {
 		int loc = -1;
