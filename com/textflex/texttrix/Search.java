@@ -768,7 +768,7 @@ class FindDialog extends JDialog {
 		wrap = new JCheckBox("Wrap");
 		LibTTx.addGridBagComponent(wrap, constraints, 2, 3, 1, 1, 100, 0, contentPane);
 		wrap.setMnemonic(KeyEvent.VK_A);
-		msg = "Starts searching from the cursor and wrap back to it";
+		msg = "Starts searching from the cursor and wraps back to it";
 		wrap.setToolTipText(msg);
 
 		// replace all instances within highlighted section
@@ -777,7 +777,7 @@ class FindDialog extends JDialog {
 		LibTTx.addGridBagComponent(selection, constraints, 1, 3, 1, 1, 100, 0, contentPane);
 		selection.setMnemonic(KeyEvent.VK_A);
 		msg =
-			"Searches, replaces text, or generates statistics only within highlighted section";
+			"Searches, replaces text, or generates statistics only within the highlighted section";
 		selection.setToolTipText(msg);
 
 		// replace all instances from cursor to end of text unless 
@@ -793,8 +793,7 @@ class FindDialog extends JDialog {
 		LibTTx.addGridBagComponent(ignoreCase, constraints, 1, 4, 1, 1, 100, 0, contentPane);
 		ignoreCase.setMnemonic(KeyEvent.VK_I);
 		msg =
-			"Search for both lower and upper case versions "
-				+ "of the expression";
+			"Searches for both lower and upper case versions of the expression";
 		ignoreCase.setToolTipText(msg);
 		
 		findBtn = new JButton(findAction);
