@@ -290,10 +290,18 @@ public class Search extends PlugInWindow {
 					
 		} else if (invokeReplace 
 			&& x != y
-			&& s.substring(x, y).equals(diag.getFindText())) {
+			&& (diag.getIgnoreCase() 
+					&& s.substring(x, y).equalsIgnoreCase(diag.getFindText())
+				|| s.substring(x, y).equals(diag.getFindText()))) {
 			// replaces single instance of quarry, only if already highlighted;
 			// otherwise, defaults to find mode to highlight the quarry
-			newstr = s.substring(0, x) + diag.getReplaceText() + s.substring(y);
+			return new PlugInOutcome(
+				diag.getReplaceText(), 
+				selectionStart, 
+				selectionEnd,
+				x,
+				y);
+			//newstr = s.substring(0, x) + diag.getReplaceText() + s.substring(y);
 			
 		} else if (stats) { // "stats" mode
 			// Assume only working from caret position or start of selected 
