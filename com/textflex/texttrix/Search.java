@@ -141,9 +141,9 @@ public class Search extends PlugInWindow {
 			'R',
 			KeyStroke.getKeyStroke("alt R"));
 
-		// Runs the search tool in "replace" mode if the user hits the 
-		// "Find and Replace" button;
-		// creates a shortcut key (alt-R) as an alternative way to invoke
+		// Runs the search tool in "stats" mode if the user hits the 
+		// "Statistics" button;
+		// creates a shortcut key (alt-S) as an alternative way to invoke
 		// the button
 		Action statsAction = new AbstractAction("Statistics", null) {
 			public void actionPerformed(ActionEvent e) {
@@ -1246,6 +1246,9 @@ class FindDialog extends JPanel {//JFrame {
 		lineCountLbl.setText(s);
 	}
 	
+	/**Sets the results label.
+	 * @param the results summary
+	*/
 	public void setResultsLbl(String s) {
 		resultsLbl.setText(s);
 	}
