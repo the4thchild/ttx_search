@@ -1,3 +1,39 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is the Text Trix code.
+ *
+ * The Initial Developer of the Original Code is
+ * Text Flex.
+ * Portions created by the Initial Developer are Copyright (C) 2003
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s): David Young <dvd@textflex.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 package com.textflex.texttrix;
 
 import javax.swing.*;
@@ -51,7 +87,7 @@ public class Search extends PlugIn {
 			public void keyPressed(KeyEvent evt) {
 				if (evt.getKeyCode() == KeyEvent.VK_ENTER)
 					setAllRuns(false);
-					runPlugIn();
+				runPlugIn();
 				//			find();
 			}
 		};
@@ -93,9 +129,10 @@ public class Search extends PlugIn {
 		// creates a shortcut key (alt-R) as an alternative way to invoke
 		// the button
 		Action replaceAction = new AbstractAction("Find and Replace", null) {
-			public void actionPerformed(ActionEvent e) { 
+			public void actionPerformed(ActionEvent e) {
 				setAllRuns(false);
-	invokeReplace = true; // flag runPlugIn() to run in "replace" mode
+				invokeReplace = true;
+				// flag runPlugIn() to run in "replace" mode
 				runPlugIn();
 				//			findReplace();
 			}
@@ -105,15 +142,15 @@ public class Search extends PlugIn {
 			"Statistics",
 			'R',
 			KeyStroke.getKeyStroke("alt R"));
-			
+
 		// Runs the search tool in "replace" mode if the user hits the 
 		// "Find and Replace" button;
 		// creates a shortcut key (alt-R) as an alternative way to invoke
 		// the button
 		Action statsAction = new AbstractAction("Statistics", null) {
-			public void actionPerformed(ActionEvent e) { 
+			public void actionPerformed(ActionEvent e) {
 				setAllRuns(false);
-	stats = true; // flag runPlugIn() to run in "replace" mode
+				stats = true; // flag runPlugIn() to run in "replace" mode
 				runPlugIn();
 				//			findReplace();
 			}
@@ -121,14 +158,19 @@ public class Search extends PlugIn {
 		LibTTx.setAcceleratedAction(
 			statsAction,
 			"Statistics",
-			'R',
+			'S',
 			KeyStroke.getKeyStroke("alt S"));
 
 		// Creates the options dialog window
 		diag =
-			new FindDialog(findEnter, replaceEnter, findAction, replaceAction, statsAction);
+			new FindDialog(
+				findEnter,
+				replaceEnter,
+				findAction,
+				replaceAction,
+				statsAction);
 	}
-	
+
 	public void setAllRuns(boolean b) {
 		invokeReplace = b;
 		stats = b;
@@ -196,6 +238,7 @@ public class Search extends PlugIn {
 		int selectionStart = -1;
 		int selectionEnd = -1;
 		boolean noTextChange = false;
+		String newstr = s;
 
 		// Acts according to whether the plug-in is set to the 
 		// "find" or "replace" modes
@@ -205,46 +248,46 @@ public class Search extends PlugIn {
 			// only if the Selection option is checked; 
 			// otherwise, searches the entire text from the caret
 			// position or the end of the highlighted section forward
-//			selectionEnd = diag.getSelection() ? y : s.length();
-//			System.out.println("x: " + x + ", y: " + y);
+			//			selectionEnd = diag.getSelection() ? y : s.length();
+			//			System.out.println("x: " + x + ", y: " + y);
 			if (diag.getSelection()) {
-				s = replace(
-				s,
-				diag.getFindText(),
-				diag.getReplaceText(),
-				x,
-				y,
-				diag.getWord(),
-				diag.getReplaceAll(),
-				diag.getWrap(),
-				diag.getIgnoreCase());
+				newstr =
+					replace(
+						s,
+						diag.getFindText(),
+						diag.getReplaceText(),
+						x,
+						y,
+						diag.getWord(),
+						diag.getReplaceAll(),
+						diag.getWrap(),
+						diag.getIgnoreCase());
 			} else {
-				s = replace(
-				s,
-				diag.getFindText(),
-				diag.getReplaceText(),
-				y,
-				diag.getWord(),
-				diag.getReplaceAll(),
-				diag.getWrap(),
-				diag.getIgnoreCase());
+				newstr =
+					replace(
+						s,
+						diag.getFindText(),
+						diag.getReplaceText(),
+						y,
+						diag.getWord(),
+						diag.getReplaceAll(),
+						diag.getWrap(),
+						diag.getIgnoreCase());
 			}
-				
+
 		} else if (stats) {
-			noTextChange = true;
 			int start = x;
 			int end = s.length();
 			if (diag.getSelection()) {
 				start = x;
 				end = y;
-			} else if (diag.getWrap()){
+			} else if (diag.getWrap()) {
 				start = 0;
 			}
 			diag.setCharCountLbl(charCount(start, end) + "");
 			diag.setWordCountLbl(wordCount(s, start, end) + "");
 			diag.setLineCountLbl(lineCount(s, start, end) + "");
 		} else { // "find" mode
-			noTextChange = true;
 			String findText = diag.getFindText();
 			// as in "replace" mode, "find" mode confines its search to 
 			// highlighted text only if the Selection option is checked;
@@ -281,8 +324,9 @@ public class Search extends PlugIn {
 			if (selectionStart != -1)
 				selectionEnd = selectionStart + findText.length();
 		}
-//		invokeReplace = false; // reset the dialog box
-		return new PlugInOutcome(s, selectionStart, selectionEnd, noTextChange);
+		//		invokeReplace = false; // reset the dialog box
+		noTextChange = s.equals(newstr);
+		return new PlugInOutcome(newstr, selectionStart, selectionEnd, noTextChange);
 	}
 
 	/** Starts the plug-in by displaing the options dialog for users
@@ -564,7 +608,8 @@ public class Search extends PlugIn {
 		boolean all,
 		boolean wrap,
 		boolean ignoreCase) {
-			System.out.println("replace search: " + text.substring(start, text.length()));
+		System.out.println(
+			"replace search: " + text.substring(start, text.length()));
 		return replace(
 			text,
 			quarry,
@@ -576,12 +621,12 @@ public class Search extends PlugIn {
 			wrap,
 			ignoreCase);
 	}
-	
+
 	public int charCount(int start, int end) {
 		System.out.println("char count: " + (end - start));
 		return end - start;
 	}
-	
+
 	public int wordCount(String s, int start, int end) {
 		int n = 0;
 		String word = "";
@@ -593,9 +638,10 @@ public class Search extends PlugIn {
 		System.out.println("word count: " + n);
 		return n;
 	}
-	
+
 	public int lineCount(String s, int start, int end) {
-		int n = 1; // must have at least one line, which does not terminate in a "\n"
+		int n = 1;
+		// must have at least one line, which does not terminate in a "\n"
 		while ((start = s.indexOf("\n", start)) >= 0 && start < end) {
 			start++;
 			n++;
@@ -605,25 +651,27 @@ public class Search extends PlugIn {
 	}
 }
 
-
-
-
-
-
-
 /** Find and replace dialog.
     Creates a dialog box accepting input for search and replacement 
     expressions as well as options to tailor the search.
 */
 class FindDialog extends JDialog {
 	JLabel tips = null; // offers tips on using the plug-in 
-	JTextField find = null;; // search expression input
-	JTextField replace = null;; // replacement expression input
-	JCheckBox word = null;; // treat the search expression as a separate word
-	JCheckBox wrap = null;; // search to the bottom and start again from the top
-	JCheckBox selection = null;; // search only within a highlighted section
-	JCheckBox replaceAll = null;; // replace all instances of search expression
-	JCheckBox ignoreCase = null;; // ignore upper/lower case
+	JLabel findLbl = null;
+	JTextField find = null; // search expression input
+	JLabel replaceLbl = null;
+	JTextField replace = null; // replacement expression input
+	JCheckBox word = null; // treat the search expression as a separate word
+	JCheckBox wrap = null; // search to the bottom and start again from the top
+	JCheckBox selection = null; // search only within a highlighted section
+	JCheckBox replaceAll = null; // replace all instances of search expression
+	JCheckBox ignoreCase = null; // ignore upper/lower case
+	JButton findBtn = null;
+	JButton replaceBtn = null;
+	JButton statsBtn = null;
+	JLabel charLbl = null;
+	JLabel wordLbl = null;
+	JLabel lineLbl = null;
 	JLabel charCountLbl = null;
 	JLabel wordCountLbl = null;
 	JLabel lineCountLbl = null;
@@ -659,7 +707,7 @@ class FindDialog extends JDialog {
 	public String getReplaceText() {
 		return replace.getText();
 	}
-	
+
 	public void setCharCountLbl(String s) {
 		charCountLbl.setText(s);
 	}
@@ -688,102 +736,93 @@ class FindDialog extends JDialog {
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.anchor = GridBagConstraints.CENTER;
 		String msg = "";
-		
+
 		// tips display
 		String lbl = "Tip: All searches and statistics start from the caret";
-		add(tips = new JLabel(lbl), constraints, 0, 0, 3, 1, 100, 0);
+		tips = new JLabel(lbl);
+		LibTTx.addGridBagComponent(tips, constraints, 0, 0, 3, 1, 100, 0, contentPane);
 
 		// search expression input
-		add(new JLabel("Find:"), constraints, 0, 1, 1, 1, 100, 0);
-		add(find = new JTextField(20), constraints, 1, 1, 2, 1, 100, 0);
+		findLbl = new JLabel("Find:");
+		LibTTx.addGridBagComponent(findLbl, constraints, 0, 1, 1, 1, 100, 0, contentPane);
+		find = new JTextField(20);
+		LibTTx.addGridBagComponent(find, constraints, 1, 1, 2, 1, 100, 0, contentPane);
 		find.addKeyListener(findEnter);
 
 		// replace expression input
-		add(new JLabel("Replace:"), constraints, 0, 2, 1, 1, 100, 0);
-		add(replace = new JTextField(20), constraints, 1, 2, 2, 1, 100, 0);
+		replaceLbl = new JLabel("Replace:");
+		LibTTx.addGridBagComponent(replaceLbl, constraints, 0, 2, 1, 1, 100, 0, contentPane);
+		replace = new JTextField(20);
+		LibTTx.addGridBagComponent(replace, constraints, 1, 2, 2, 1, 100, 0, contentPane);
 		replace.addKeyListener(replaceEnter);
 
 		// treat search expression as a separate word
 		lbl = "Whole word only";
-		add(word = new JCheckBox(lbl), constraints, 0,	3,	1,	1,	100,	0);
-		word.setMnemonic(KeyEvent.VK_N);
-		msg = "Search for the expression as a separate word";
+		word = new JCheckBox(lbl);
+		LibTTx.addGridBagComponent(word, constraints, 0, 3, 1, 1, 100, 0, contentPane);
+		word.setMnemonic(KeyEvent.VK_W);
+		msg = "Searches for the expression as a separate word";
 		word.setToolTipText(msg);
 
 		// wrap search through start of text if necessary
-		add(wrap = new JCheckBox("Wrap"), constraints, 2, 3, 1, 1, 100, 0);
+		wrap = new JCheckBox("Wrap");
+		LibTTx.addGridBagComponent(wrap, constraints, 2, 3, 1, 1, 100, 0, contentPane);
 		wrap.setMnemonic(KeyEvent.VK_A);
-		msg = "Start searching from the cursor and wrap back to it";
+		msg = "Starts searching from the cursor and wrap back to it";
 		wrap.setToolTipText(msg);
 
 		// replace all instances within highlighted section
-		lbl = "Search within selection";
-		add(selection = new JCheckBox(lbl),	constraints, 1, 3, 1, 1, 100, 0);
-		selection.setMnemonic(KeyEvent.VK_W);
+		lbl = "Selected area only";
+		selection = new JCheckBox(lbl);
+		LibTTx.addGridBagComponent(selection, constraints, 1, 3, 1, 1, 100, 0, contentPane);
+		selection.setMnemonic(KeyEvent.VK_A);
 		msg =
-			"Search and replace text within only the " + "highlighted section";
+			"Searches, replaces text, or generates statistics only within highlighted section";
 		selection.setToolTipText(msg);
 
 		// replace all instances from cursor to end of text unless 
 		// combined with wrap, where replace all instances in whole text
-		add(replaceAll = new JCheckBox("Replace all"), constraints, 0, 4, 1, 1, 100, 0);
+		replaceAll = new JCheckBox("Replace all");
+		LibTTx.addGridBagComponent(replaceAll,	constraints, 0, 4, 1, 1, 100, 0, contentPane);
 		replaceAll.setMnemonic(KeyEvent.VK_L);
 		msg = "Replace all instances of the expression";
 		replaceAll.setToolTipText(msg);
 
 		// ignore upper/lower case while searching
-		add(ignoreCase = new JCheckBox("Ignore case"), constraints, 1, 4, 1, 1, 100, 0);
+		ignoreCase = new JCheckBox("Ignore case");
+		LibTTx.addGridBagComponent(ignoreCase, constraints, 1, 4, 1, 1, 100, 0, contentPane);
 		ignoreCase.setMnemonic(KeyEvent.VK_I);
 		msg =
 			"Search for both lower and upper case versions "
 				+ "of the expression";
 		ignoreCase.setToolTipText(msg);
-
-		add(new JButton(findAction), constraints, 0, 5, 1, 1, 100, 0);
+		
+		findBtn = new JButton(findAction);
+		LibTTx.addGridBagComponent(findBtn, constraints, 0, 5, 1, 1, 100, 0, contentPane);
 
 		// find and replace action, using appropriate options above
-		add(new JButton(replaceAction), constraints, 1, 5, 1, 1, 100, 0);
+		replaceBtn = new JButton(replaceAction);
+		LibTTx.addGridBagComponent(replaceBtn, constraints, 1, 5, 1, 1, 100, 0, contentPane);
 
-		add(new JButton(statsAction), constraints, 2, 5, 1, 1, 100, 0);
-
-		// search expression input
-		add(new JLabel("Characters:"), constraints, 0, 6, 2, 1, 100, 0);
-		add(charCountLbl = new JLabel(""), constraints, 2, 6, 1, 1, 100, 0);
+		statsBtn = new JButton(statsAction);
+		LibTTx.addGridBagComponent(statsBtn, constraints, 2, 5, 1, 1, 100, 0, contentPane);
 
 		// search expression input
-		add(new JLabel("Words:"), constraints, 0, 7, 2, 1, 100, 0);
-		add(wordCountLbl = new JLabel(""), constraints, 2, 7, 1, 1, 100, 0);
+		charLbl = new JLabel("Characters:");
+		LibTTx.addGridBagComponent(charLbl, constraints, 0, 6, 2, 1, 100, 0, contentPane);
+		charCountLbl = new JLabel("");
+		LibTTx.addGridBagComponent(charCountLbl, constraints, 2, 6, 1, 1, 100, 0, contentPane);
 
 		// search expression input
-		add(new JLabel("Lines:"), constraints, 0, 8, 2, 1, 100, 0);
-		add(lineCountLbl = new JLabel(""), constraints, 2, 8, 1, 1, 100, 0);
-	}
+		wordLbl = new JLabel("Words:");
+		LibTTx.addGridBagComponent(wordLbl, constraints, 0, 7, 2, 1, 100, 0, contentPane);
+		wordCountLbl = new JLabel("");
+		LibTTx.addGridBagComponent(wordCountLbl, constraints, 2, 7, 1, 1, 100, 0, contentPane);
 
-	/**Adds a new component to the <code>GridBagLayout</code> manager.
-	 * @param c component to add
-	 * @param constraints layout constraints object
-	 * @param x column number
-	 * @param y row number
-	 * @param w number of columns to span
-	 * @param h number of rows to span
-	 * @param wx column weight
-	 * @param wy row weight
-	 * */
-	public void add(
-		Component c,
-		GridBagConstraints constraints,
-		int x,
-		int y,
-		int w,
-		int h,
-		int wx,
-		int wy) {
-		constraints.gridx = x;
-		constraints.gridy = y;
-		constraints.gridwidth = w;
-		constraints.gridheight = h;
-		constraints.weightx = wx;
-		constraints.weighty = wy;
-		getContentPane().add(c, constraints);
+		// search expression input
+		lineLbl = new JLabel("Lines:");
+		LibTTx.addGridBagComponent(lineLbl, constraints, 0, 8, 2, 1, 100, 0, contentPane);
+		lineCountLbl = new JLabel("");
+		LibTTx.addGridBagComponent(lineCountLbl, constraints, 2, 8, 1, 1, 100, 0, contentPane);
 	}
 }
