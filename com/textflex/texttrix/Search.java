@@ -166,6 +166,7 @@ public class Search extends PlugInWindow {
 				replaceAction,
 				statsAction);
 		setWindow(diag);
+		//setPanel(diag);
 	}
 
 	/** Sets all run-time flags to the given boolean value.
@@ -643,7 +644,7 @@ public class Search extends PlugInWindow {
     Creates a dialog box accepting input for search and replacement 
     expressions as well as options to tailor the search.
 */
-class FindDialog extends JFrame {
+class FindDialog extends JPanel {//JFrame {
 	JLabel tips = null; // offers tips on using the plug-in 
 	JLabel findLbl = null; // label for the search field
 	JTextField find = null; // search expression input
@@ -674,10 +675,11 @@ class FindDialog extends JFrame {
 		Action findAction,
 		Action replaceAction,
 		Action statsAction) {
-		super("Search and Stats");
+		//super("Search and Stats");
+		super(new GridBagLayout());
 		setSize(400, 200);
-		Container contentPane = getContentPane();
-		contentPane.setLayout(new GridBagLayout());
+		//Container contentPane = getContentPane();
+		//contentPane.setLayout(new GridBagLayout());
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.anchor = GridBagConstraints.CENTER;
@@ -695,7 +697,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 
 		// search expression input
 		findLbl = new JLabel("Find:");
@@ -708,7 +710,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		find = new JTextField(20);
 		LibTTx.addGridBagComponent(
 			find,
@@ -719,7 +721,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		find.addKeyListener(findEnter);
 
 		// replace expression input
@@ -733,7 +735,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		replace = new JTextField(20);
 		LibTTx.addGridBagComponent(
 			replace,
@@ -744,7 +746,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		replace.addKeyListener(replaceEnter);
 
 		// treat search expression as a separate word
@@ -759,7 +761,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		word.setMnemonic(KeyEvent.VK_W);
 		msg = "Searches for the expression as a separate word";
 		word.setToolTipText(msg);
@@ -775,7 +777,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		wrap.setMnemonic(KeyEvent.VK_A);
 		msg = "Starts searching from the cursor and wraps back to it";
 		wrap.setToolTipText(msg);
@@ -792,7 +794,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		selection.setMnemonic(KeyEvent.VK_A);
 		msg =
 			"Searches, replaces text, or generates statistics only within the highlighted section";
@@ -810,7 +812,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		replaceAll.setMnemonic(KeyEvent.VK_L);
 		msg = "Replace all instances of the expression";
 		replaceAll.setToolTipText(msg);
@@ -826,7 +828,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		ignoreCase.setMnemonic(KeyEvent.VK_I);
 		msg =
 			"Searches for both lower and upper case versions of the expression";
@@ -843,7 +845,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 
 		// find and replace action, using appropriate options above
 		replaceBtn = new JButton(replaceAction);
@@ -856,7 +858,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 
 		// fires the "stats" action
 		statsBtn = new JButton(statsAction);
@@ -869,7 +871,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 
 		// search expression input
 		charLbl = new JLabel("Characters:");
@@ -882,7 +884,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		charCountLbl = new JLabel("");
 		LibTTx.addGridBagComponent(
 			charCountLbl,
@@ -893,7 +895,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 
 		// search expression input
 		wordLbl = new JLabel("Words:");
@@ -906,7 +908,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		wordCountLbl = new JLabel("");
 		LibTTx.addGridBagComponent(
 			wordCountLbl,
@@ -917,7 +919,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 
 		// search expression input
 		lineLbl = new JLabel("Lines:");
@@ -930,7 +932,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 		lineCountLbl = new JLabel("");
 		LibTTx.addGridBagComponent(
 			lineCountLbl,
@@ -941,7 +943,7 @@ class FindDialog extends JFrame {
 			1,
 			100,
 			0,
-			contentPane);
+			this);//contentPane);
 	}
 
 /*
@@ -956,7 +958,7 @@ class FindDialog extends JFrame {
 	public void setIconImage(ImageIcon pic) {
 		// can't insert within the constructor in case the plug-in creates the object before
 		// receiving the plug-in's path to generate the icon
-		setIconImage(pic.getImage());
+		//setIconImage(pic.getImage());
 	}
 
 	/** Gets the value of the "word" check box.
