@@ -348,7 +348,7 @@ public class Search extends PlugIn {
 	with which to replace, and start the search.
 	*/
 	public void startPlugIn() {
-		diag.show();
+		diag.setVisible(true);//show(); DEPRECATED as of JVM v.1.5.0
 	}
 
 	/**Find a the first occurrence of a given sequence in a string.
