@@ -86,9 +86,10 @@ public class Search extends PlugIn {
 		// the "Find" box;
 		KeyAdapter findEnter = new KeyAdapter() {
 			public void keyPressed(KeyEvent evt) {
-				if (evt.getKeyCode() == KeyEvent.VK_ENTER)
+				if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
 					setAllRuns(false);
-				runPlugIn();
+					runPlugIn();
+				}
 			}
 		};
 
@@ -155,7 +156,7 @@ public class Search extends PlugIn {
 			"Statistics",
 			'S',
 			KeyStroke.getKeyStroke("alt S"));
-		
+
 		// Creates the options dialog window
 		diag =
 			new FindDialog(
@@ -165,7 +166,7 @@ public class Search extends PlugIn {
 				replaceAction,
 				statsAction);
 	}
-	
+
 	/** Sets all run-time flags to the given boolean value.
 	 * For example, both <code>invokeReplace</code> and <code>stats</code> become
 	 * <code>b</code>
@@ -188,7 +189,6 @@ public class Search extends PlugIn {
 		diag.setIconImage(pic);
 		return pic;
 	}
-	
 
 	/** Gets the rollover icon.
 	@return rollover icon
@@ -215,12 +215,10 @@ public class Search extends PlugIn {
 		return run(s, caretPosition, caretPosition);
 	}
 	*/
-	
-	
+
 	public PlugInOutcome run(String s) {
 		return run(s, 0, 0);
 	}
-	
 
 	/** Runs the search tool in the appropriate mode, whether "find" 
 	or "replace".
@@ -253,9 +251,9 @@ public class Search extends PlugIn {
 			// only if the Selection option is checked; 
 			// otherwise, searches the entire text from the caret
 			// position or the end of the highlighted section forward
-			
+
 			//			System.out.println("x: " + x + ", y: " + y);
-			
+
 			// Passes only the selected section if flagged to do so
 			if (diag.getSelection()) { // highlighted text only
 				newstr =
@@ -283,16 +281,19 @@ public class Search extends PlugIn {
 			}
 
 		} else if (stats) { // "stats" mode
+			//System.out.println("s: " + s);
 			// Assume only working from caret position onward
 			int start = x;
 			int end = s.length();
 			// Passes only selected text if flagged to do so
 			if (diag.getSelection()) { // highlighted text only
+				System.out.println("start: " + x + ", end: " + y);
 				start = x;
 				end = y;
 			} else if (diag.getWrap()) { // entire text
 				start = 0;
 			}
+			//System.out.println("charCount: " + charCount(start, end));
 			diag.setCharCountLbl(charCount(start, end) + "");
 			diag.setWordCountLbl(wordCount(s, start, end) + "");
 			diag.setLineCountLbl(lineCount(s, start, end) + "");
@@ -333,8 +334,13 @@ public class Search extends PlugIn {
 			if (selectionStart != -1)
 				selectionEnd = selectionStart + findText.length();
 		}
-		boolean noTextChange = s.equals(newstr); // "find" and "stats" mode don't alter the text
-		return new PlugInOutcome(newstr, selectionStart, selectionEnd, noTextChange);
+		boolean noTextChange = s.equals(newstr);
+		// "find" and "stats" mode don't alter the text
+		return new PlugInOutcome(
+			newstr,
+			selectionStart,
+			selectionEnd,
+			noTextChange);
 	}
 
 	/** Starts the plug-in by displaing the options dialog for users
@@ -357,7 +363,7 @@ public class Search extends PlugIn {
 			return (loc = text.indexOf(quarry, start)) >= end ? -1 : loc;
 		return -1;
 	}
-	
+
 	/**Front-end to the <code>find</code> methods with the assumption that the search
 	 * starts from the caret position.
 	 * @param text string to search
@@ -367,7 +373,7 @@ public class Search extends PlugIn {
 	 * non-letters/non-digits surrounding it
 	 * @param ignoreCase if true, ignore upper/lower case
 	 * @return index of sequence's start in the string; -1 if not found
-	 */	
+	 */
 	public int find(
 		String text,
 		String quarry,
@@ -426,7 +432,7 @@ public class Search extends PlugIn {
 		String word = "";
 		while (start < finish
 			&& !(word = getWord(text, start, finish)).equals("")) {
-//			System.out.println("word: " + word);
+			//			System.out.println("word: " + word);
 			if (word.equals(quarry)) {
 				return text.indexOf(quarry, start);
 			} else {
@@ -435,7 +441,7 @@ public class Search extends PlugIn {
 		}
 		return -1;
 	}
-	
+
 	/** Gets the next whole word from a given position, assuming that the position
 	 * is not in the middle of a word.
 	 * @param text text to search
@@ -610,8 +616,8 @@ public class Search extends PlugIn {
 		boolean all,
 		boolean wrap,
 		boolean ignoreCase) {
-		System.out.println(
-			"replace search: " + text.substring(start, text.length()));
+		//System.out.println(
+		//	"replace search: " + text.substring(start, text.length()));
 		return replace(
 			text,
 			quarry,
@@ -631,10 +637,10 @@ public class Search extends PlugIn {
 	 * @return number of characters
 	 */
 	public int charCount(int start, int end) {
-//		System.out.println("char count: " + (end - start));
+		//		System.out.println("char count: " + (end - start));
 		return end - start;
 	}
-	
+
 	/** Counts the number of words between two indices, inluding the first but not
 	 * the last index.
 	 * If the starting position is in the middle of a word, that word will still be counted.
@@ -653,13 +659,13 @@ public class Search extends PlugIn {
 		//characters start after the "end"
 		while (start < end && !(word = getWord(s, start, end)).equals("")) {
 			start = s.indexOf(word, start) + word.length();
-//			System.out.println("word: " + word);
+			//			System.out.println("word: " + word);
 			n++;
 		}
-//		System.out.println("word count: " + n);
+		//		System.out.println("word count: " + n);
 		return n;
 	}
-	
+
 	/** Counts the number of lines.
 	 * 
 	 * @param s text to search
@@ -674,7 +680,7 @@ public class Search extends PlugIn {
 			start++;
 			n++;
 		}
-//		System.out.println("line count: " + n);
+		//		System.out.println("line count: " + n);
 		return n;
 	}
 }
@@ -703,7 +709,7 @@ class FindDialog extends JFrame {
 	JLabel charCountLbl = null; // the actual character count
 	JLabel wordCountLbl = null; // the actual word count
 	JLabel lineCountLbl = null; // the actual line count
-	
+
 	/**Construct a find/replace dialog box
 	 * @param owner frame to which the dialog box will be attached; 
 	 * can be null
@@ -726,33 +732,96 @@ class FindDialog extends JFrame {
 		// tips display
 		String lbl = "Tip: All searches and statistics start from the caret";
 		tips = new JLabel(lbl);
-		LibTTx.addGridBagComponent(tips, constraints, 0, 0, 3, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			tips,
+			constraints,
+			0,
+			0,
+			3,
+			1,
+			100,
+			0,
+			contentPane);
 
 		// search expression input
 		findLbl = new JLabel("Find:");
-		LibTTx.addGridBagComponent(findLbl, constraints, 0, 1, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			findLbl,
+			constraints,
+			0,
+			1,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		find = new JTextField(20);
-		LibTTx.addGridBagComponent(find, constraints, 1, 1, 2, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			find,
+			constraints,
+			1,
+			1,
+			2,
+			1,
+			100,
+			0,
+			contentPane);
 		find.addKeyListener(findEnter);
 
 		// replace expression input
 		replaceLbl = new JLabel("Replace:");
-		LibTTx.addGridBagComponent(replaceLbl, constraints, 0, 2, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			replaceLbl,
+			constraints,
+			0,
+			2,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		replace = new JTextField(20);
-		LibTTx.addGridBagComponent(replace, constraints, 1, 2, 2, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			replace,
+			constraints,
+			1,
+			2,
+			2,
+			1,
+			100,
+			0,
+			contentPane);
 		replace.addKeyListener(replaceEnter);
 
 		// treat search expression as a separate word
 		lbl = "Whole word only";
 		word = new JCheckBox(lbl);
-		LibTTx.addGridBagComponent(word, constraints, 0, 3, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			word,
+			constraints,
+			0,
+			3,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		word.setMnemonic(KeyEvent.VK_W);
 		msg = "Searches for the expression as a separate word";
 		word.setToolTipText(msg);
 
 		// wrap search through start of text if necessary
 		wrap = new JCheckBox("Wrap");
-		LibTTx.addGridBagComponent(wrap, constraints, 2, 3, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			wrap,
+			constraints,
+			2,
+			3,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		wrap.setMnemonic(KeyEvent.VK_A);
 		msg = "Starts searching from the cursor and wraps back to it";
 		wrap.setToolTipText(msg);
@@ -760,7 +829,16 @@ class FindDialog extends JFrame {
 		// replace all instances within highlighted section
 		lbl = "Selected area only";
 		selection = new JCheckBox(lbl);
-		LibTTx.addGridBagComponent(selection, constraints, 1, 3, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			selection,
+			constraints,
+			1,
+			3,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		selection.setMnemonic(KeyEvent.VK_A);
 		msg =
 			"Searches, replaces text, or generates statistics only within the highlighted section";
@@ -769,50 +847,149 @@ class FindDialog extends JFrame {
 		// replace all instances from cursor to end of text unless 
 		// combined with wrap, where replace all instances in whole text
 		replaceAll = new JCheckBox("Replace all");
-		LibTTx.addGridBagComponent(replaceAll,	constraints, 0, 4, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			replaceAll,
+			constraints,
+			0,
+			4,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		replaceAll.setMnemonic(KeyEvent.VK_L);
 		msg = "Replace all instances of the expression";
 		replaceAll.setToolTipText(msg);
 
 		// ignore upper/lower case while searching
 		ignoreCase = new JCheckBox("Ignore case");
-		LibTTx.addGridBagComponent(ignoreCase, constraints, 1, 4, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			ignoreCase,
+			constraints,
+			1,
+			4,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 		ignoreCase.setMnemonic(KeyEvent.VK_I);
 		msg =
 			"Searches for both lower and upper case versions of the expression";
 		ignoreCase.setToolTipText(msg);
-		
+
 		// fires the "find" action
 		findBtn = new JButton(findAction);
-		LibTTx.addGridBagComponent(findBtn, constraints, 0, 5, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			findBtn,
+			constraints,
+			0,
+			5,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 
 		// find and replace action, using appropriate options above
 		replaceBtn = new JButton(replaceAction);
-		LibTTx.addGridBagComponent(replaceBtn, constraints, 1, 5, 1, 1, 100, 0, contentPane);
-		
+		LibTTx.addGridBagComponent(
+			replaceBtn,
+			constraints,
+			1,
+			5,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
+
 		// fires the "stats" action
 		statsBtn = new JButton(statsAction);
-		LibTTx.addGridBagComponent(statsBtn, constraints, 2, 5, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			statsBtn,
+			constraints,
+			2,
+			5,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 
 		// search expression input
 		charLbl = new JLabel("Characters:");
-		LibTTx.addGridBagComponent(charLbl, constraints, 0, 6, 2, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			charLbl,
+			constraints,
+			0,
+			6,
+			2,
+			1,
+			100,
+			0,
+			contentPane);
 		charCountLbl = new JLabel("");
-		LibTTx.addGridBagComponent(charCountLbl, constraints, 2, 6, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			charCountLbl,
+			constraints,
+			2,
+			6,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 
 		// search expression input
 		wordLbl = new JLabel("Words:");
-		LibTTx.addGridBagComponent(wordLbl, constraints, 0, 7, 2, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			wordLbl,
+			constraints,
+			0,
+			7,
+			2,
+			1,
+			100,
+			0,
+			contentPane);
 		wordCountLbl = new JLabel("");
-		LibTTx.addGridBagComponent(wordCountLbl, constraints, 2, 7, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			wordCountLbl,
+			constraints,
+			2,
+			7,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 
 		// search expression input
 		lineLbl = new JLabel("Lines:");
-		LibTTx.addGridBagComponent(lineLbl, constraints, 0, 8, 2, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			lineLbl,
+			constraints,
+			0,
+			8,
+			2,
+			1,
+			100,
+			0,
+			contentPane);
 		lineCountLbl = new JLabel("");
-		LibTTx.addGridBagComponent(lineCountLbl, constraints, 2, 8, 1, 1, 100, 0, contentPane);
+		LibTTx.addGridBagComponent(
+			lineCountLbl,
+			constraints,
+			2,
+			8,
+			1,
+			1,
+			100,
+			0,
+			contentPane);
 	}
-	
+
 	/** Sets the window's icon.
 	 * 
 	 * @param pic icon to display
@@ -822,11 +999,6 @@ class FindDialog extends JFrame {
 		// receiving the plug-in's path to generate the icon
 		setIconImage(pic.getImage());
 	}
-	
-	
-	
-	
-	
 
 	/** Gets the value of the "word" check box.
 	 * 
@@ -835,7 +1007,7 @@ class FindDialog extends JFrame {
 	public boolean getWord() {
 		return word.isSelected();
 	}
-	
+
 	/** Gets the value of the "wrap" check box.
 	 * 
 	 * @return value of the <code>warp JCheckBox</code>
@@ -843,7 +1015,7 @@ class FindDialog extends JFrame {
 	public boolean getWrap() {
 		return wrap.isSelected();
 	}
-	
+
 	/** Gets the value of the "selection" check box.
 	 * 
 	 * @return value of the <code>selection JCheckBox</code>
@@ -851,7 +1023,7 @@ class FindDialog extends JFrame {
 	public boolean getSelection() {
 		return selection.isSelected();
 	}
-	
+
 	/** Gets the value of the "replaceAll" check box.
 	 * 
 	 * @return value of the <code>replaceAll JCheckBox</code>
@@ -859,7 +1031,7 @@ class FindDialog extends JFrame {
 	public boolean getReplaceAll() {
 		return replaceAll.isSelected();
 	}
-	
+
 	/** Gets the value of the "ignoreCase" check box.
 	 * 
 	 * @return value of the <code>ignoreCase JCheckBox</code>
@@ -867,7 +1039,7 @@ class FindDialog extends JFrame {
 	public boolean getIgnoreCase() {
 		return ignoreCase.isSelected();
 	}
-	
+
 	/** Gets the value in the "find" text field.
 	 * 
 	 * @return value in the <code>find JFrame</code>
@@ -875,7 +1047,7 @@ class FindDialog extends JFrame {
 	public String getFindText() {
 		return find.getText();
 	}
-	
+
 	/** Gets the value of the "replace" text field.
 	 * 
 	 * @return value of the <code>replace JCheckBox</code>
@@ -883,13 +1055,7 @@ class FindDialog extends JFrame {
 	public String getReplaceText() {
 		return replace.getText();
 	}
-	
-	
-	
-	
-	
-	
-	
+
 	/** Sets the value of the "charCountLbl" counter.
 	 * 
 	 * @return value of the <code>charCountLbl JLbl</code>
@@ -897,7 +1063,7 @@ class FindDialog extends JFrame {
 	public void setCharCountLbl(String s) {
 		charCountLbl.setText(s);
 	}
-	
+
 	/** Gets the value of the "wordCountLbl" counter.
 	 * 
 	 * @return value of the <code>wordCountLbl JLbl</code>
@@ -905,7 +1071,7 @@ class FindDialog extends JFrame {
 	public void setWordCountLbl(String s) {
 		wordCountLbl.setText(s);
 	}
-	
+
 	/** Gets the value of the "lineCountLbl" counter.
 	 * 
 	 * @return value of the <code>lineCountLbl JLbl</code>
