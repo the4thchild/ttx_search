@@ -5,15 +5,34 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/** Plug-in to search documents for specific sequences of text and replace 
+    them with alternatives if desired.  The plug-in can search for simple
+    sequences or whole words, whether throughout the document, from the
+    cursor on, or only within the highlighted selection.
 
+    <p>This search tool creates a dialog window for the user to enter
+    the text to find and the text to replace it.  The window
+    also allows the user to choose specific options to tailor the
+    search before pressing either the "Find" or "Find and replace" button.
+    Pressing either button tells <code>TextTrix</code> to run the plug-in
+    on the currently selected tab.  The plug-in returns an object containing
+    the potentially modified text as well as any positions to highlight.
+*/
 public class Search extends PlugIn {
-    FindDialog diag = null;
-    boolean invokeReplace = false;
-    /**Find and replace dialog.
-     * Creates a dialog box accepting input for search and replacement 
-     * expressions as well as options to tailor the search.
-     */
+    FindDialog diag = null; // the dialog window for user options
+    // whether to run find() or replace() after pressing a button,
+    // which causes TextTrix to lauch the plug-in's single runPlugIn() command
+    boolean invokeReplace = false; 
 
+    /** Creates the search plug-in.
+	Sets <code>ignoreSelection</code> to <code>false</code> so that
+	<code>TextTrix</code> sends the entire body of text.  The plug-in
+	chooses which sections on which to work according to user-set
+	options.  The constructor also creates the <code>Action</code>s
+	and <code>Listener</code>s
+	to place in the dialog window so that the plug-in can directly
+	listen for user commands to run the search tool.
+    */
     public Search() {		
 	super("Search",
 	      "tools",
@@ -21,7 +40,11 @@ public class Search extends PlugIn {
 	      "desc.html",
 	      "icon.png",
 	      "icon-roll.png");
-	setIgnoreSelection(true);
+	setAlwaysEntireText(true); // retrieve the entire body of text
+
+	// Runs the search tool in "find" mode if the user hits "Enter" in 
+	// the "Find" box;
+	// ASSUMES: invokeReplace == false
 	KeyAdapter findEnter = new KeyAdapter() {
 		public void keyPressed(KeyEvent evt) {
 		    if (evt.getKeyCode() == KeyEvent.VK_ENTER) 
@@ -30,16 +53,24 @@ public class Search extends PlugIn {
 		}
 	    };
 
+	// Runs the search tool in "replace" mode if the user hits "Enter" in 
+	// the "Find and Replace" box;
 	KeyAdapter replaceEnter = new KeyAdapter() {
 		public void keyPressed(KeyEvent evt) {
 		    if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-			invokeReplace = true;
+			// flag runPlugIn() to run in "replace" mode
+			invokeReplace = true; 
 			runPlugIn();
 			//			findReplace();
 		    }
 		}
 	    };
-	// find action, using the appropriate options above
+
+	// Runs the search tool in "find" mode if the user hits the "Find"
+	// button;
+	// creates a shortcut key (alt-F) as an alternative way to invoke
+	// the button
+	// ASSUMES: invokeReplace == false
 	Action findAction = new AbstractAction("Find", null) {
 		public void actionPerformed(ActionEvent e) {
 		    runPlugIn();
@@ -49,9 +80,14 @@ public class Search extends PlugIn {
 	LibTTx.setAcceleratedAction(findAction, "Find", 'F', 
 			     KeyStroke.getKeyStroke("alt F"));
 	   
+	// Runs the search tool in "replace" mode if the user hits the 
+	// "Find and Replace" button;
+	// creates a shortcut key (alt-R) as an alternative way to invoke
+	// the button
 	Action replaceAction 
 	    = new AbstractAction("Find and Replace", null) {
 		    public void actionPerformed(ActionEvent e) {
+			// flag runPlugIn() to run in "replace" mode
 			invokeReplace = true;
 			runPlugIn();
 			//			findReplace();
@@ -59,6 +95,8 @@ public class Search extends PlugIn {
 		};
 	LibTTx.setAcceleratedAction(replaceAction, "Find and replace", 'R', 
 			     KeyStroke.getKeyStroke("alt R"));
+
+	// Creates the options dialog window
 	diag = new FindDialog(findEnter, replaceEnter, 
 			      findAction, replaceAction);
     }
@@ -91,39 +129,79 @@ public class Search extends PlugIn {
     }
     */
 
-    public PlugInOutcome run(String s) {
-	return run(s, 0, 0);
+    /** Front-end to the <code>run(String, int, int)</code> method,
+	assuming that <code>Search</code> will work on the entire body
+	of text.
+	@param s text to search; all of it will be searched
+	@return the modified text and positions to highlight
+    */
+    public PlugInOutcome run(String s, int caretPosition) {
+	return run(s, caretPosition, caretPosition);
     }
-    
-    
+
+    /** Runs the search tool in the appropriate mode, whether "find" 
+	or "replace".
+	In "find" mode, the tool searches from the current caret position
+	or after any highlighted text unless the "Search within selection"
+	option box is checked.  The search only searches the text preceding
+	the cursor if "Wrap" is checked, which causes the search to wrap
+	around to start searching again from the beginning of the text if
+	the search sequence has not been found yet.
+	"Replace" mode mimics the searching in "find" mode" while also 
+	replacing the search sequence with a replacement sequence.
+	The "replace" mode also gives the option of finding and replacing
+	multiple instances of the search sequence at once.
+	@param s text to search
+	@param x start position
+	@param y end position, non-inclusive
+	@return the modified text and positions to highlight
+    */
     public PlugInOutcome run(String s, int x, int y) {
 	//	find.setText(s);
-	int selectionStart = -1;
+	// the critical variable to keep in default setting to prevent
+	// TextTrix from highlighting when there's nothing to highlight
+	int selectionStart = -1; 
 	int selectionEnd = -1;
-	if (invokeReplace) {
+
+	// Acts according to whether the plug-in is set to the 
+	// "find" or "replace" modes
+	if (invokeReplace) { // "replace" mode
 	    //	    selectionStart = x;
+	    // confines the search to within the highlighted section
+	    // only if the Selection option is checked; 
+	    // otherwise, searches the entire text from the caret
+	    // position or the end of the highlighted section forward
 	    selectionEnd = diag.getSelection() ? y : s.length();
 	    s = replace(s, diag.getFindText(), diag.getReplaceText(), 
 			x, selectionEnd, diag.getWord(), 
 			diag.getReplaceAll(), diag.getWrap(), 
 			diag.getIgnoreCase());
-	} else {
+	} else { // "find" mode
 	    String findText = diag.getFindText();
-	    if (diag.getSelection()) {
+	    // as in "replace" mode, "find" mode confines its search to 
+	    // highlighted text only if the Selection option is checked;
+	    // if not, "find" must start searching after any highlighted
+	    // portion in case the user is using the tool for a repeated
+	    // word, which would highlight the word each time and would
+	    // force the user to deselect the text otherwise
+	    if (diag.getSelection()) { // selected text only
 		selectionStart 
 		    = find(s, findText, x, y,
 			   diag.getWord(), diag.getIgnoreCase());
-	    } else {
+	    } else { // post-caret or post-selected text
 		selectionStart 
 		    = find(s, findText, y,
 			   diag.getWord(), diag.getIgnoreCase());
+		// wrap if sequence not yet found and Wrap option
+		// checked
 		if (selectionStart == -1 && diag.getWrap()) {
 		    selectionStart
 			= find(s, findText, 0, diag.getWord(), 
 			       diag.getIgnoreCase());
 		}
 	    }
-	    // wrap if wrap-enabled
+	    // determines the ending position to highlight if the
+	    // sequence has been found
 	    if (selectionStart != -1) 
 		selectionEnd = selectionStart + findText.length();
 	}
@@ -131,6 +209,10 @@ public class Search extends PlugIn {
 	return new PlugInOutcome(s, selectionStart, selectionEnd);
     }
 
+    /** Starts the plug-in by displaing the options dialog for users
+	to choose their search options, enter the text to search or
+	with which to replace, and start the search.
+    */
     public void startPlugIn() {
 	diag.show();
     }
@@ -336,12 +418,13 @@ public class Search extends PlugIn {
 	return replace(text, quarry, replacement, 0, text.length(), word,
 			   all, wrap, ignoreCase);
     }
-
-
-		
 }
 
 
+/** Find and replace dialog.
+    Creates a dialog box accepting input for search and replacement 
+    expressions as well as options to tailor the search.
+*/
 class FindDialog extends JDialog {
     JTextField find; // search expression input
     JTextField replace; // replacement expression input
@@ -410,10 +493,10 @@ class FindDialog extends JDialog {
 	wrap.setToolTipText(msg);
 			
 	// replace all instances within highlighted section
-	add(selection = new JCheckBox("Replace within selection"), 
+	add(selection = new JCheckBox("Search within selection"), 
 	    constraints, 1, 2, 1, 1, 100, 0);
 	selection.setMnemonic(KeyEvent.VK_S);
-	msg = "Search and replace text within the entire "
+	msg = "Search and replace text within only the "
 	    + "highlighted section";
 	selection.setToolTipText(msg);
 			
