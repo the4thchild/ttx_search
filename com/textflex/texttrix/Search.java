@@ -659,10 +659,8 @@ public class Search extends PlugIn {
 		//characters start after the "end"
 		while (start < end && !(word = getWord(s, start, end)).equals("")) {
 			start = s.indexOf(word, start) + word.length();
-			//			System.out.println("word: " + word);
 			n++;
 		}
-		//		System.out.println("word count: " + n);
 		return n;
 	}
 
@@ -680,7 +678,6 @@ public class Search extends PlugIn {
 			start++;
 			n++;
 		}
-		//		System.out.println("line count: " + n);
 		return n;
 	}
 }
