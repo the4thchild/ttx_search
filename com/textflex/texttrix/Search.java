@@ -919,7 +919,13 @@ class FindDialog extends JFrame {
 		LibTTx.addGridBagComponent(lineCountLbl, constraints, 2, 8, 1, 1, 100, 0, contentPane);
 	}
 	
+	/** Sets the window's icon.
+	 * 
+	 * @param pic icon to display
+	 */
 	public void setIconImage(ImageIcon pic) {
+		// can't insert within the constructor in case the plug-in creates the object before
+		// receiving the plug-in's path to generate the icon
 		setIconImage(pic.getImage());
 	}
 }
