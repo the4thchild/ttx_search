@@ -294,9 +294,9 @@ public class Search extends PlugInWindow {
 					
 		} else if (invokeReplace 
 			&& x != y
-			&& (diag.getIgnoreCase() 
-					&& (selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindText())
-				|| selectedText.equals(diag.getFindText()))) {
+			&& ((selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindText())
+					&& diag.getIgnoreCase())
+				|| selectedText.equals(diag.getFindText())) {
 			// replaces single instance of quarry, only if already highlighted;
 			// otherwise, defaults to find mode to highlight the quarry
 			String[] results = new String[] {
