@@ -37,6 +37,7 @@
 package com.textflex.texttrix;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -224,16 +225,22 @@ public class Search extends PlugInWindow {
 
 	/** Runs the search tool in the appropriate mode, whether "find" 
 	or "replace".
-	In "find" mode, the tool searches from the current caret position
-	or after any highlighted text unless the "Search within selection"
-	option box is checked.  The search only searches the text preceding
-	the cursor if "Wrap" is checked, which causes the search to wrap
+	In "find" mode, the tool searches from the cursor position or at the
+	start of the selected section.  If "Wrap" is checked, the search 
+	function will wrap
 	around to start searching again from the beginning of the text if
-	the search sequence has not been found yet.
-	"Replace" mode mimics the searching in "find" mode" while also 
+	the search sequence has not been found yet.  Choosing the
+	"Selected Area Only" confines the search to the selected section.
+	"Replace" mode mimics the searching in Find mode" while also 
 	replacing the search sequence with a replacement sequence.
-	The "replace" mode also gives the option of finding and replacing
-	multiple instances of the search sequence at once.
+	If text has been selected, the Replace function replaces that text
+	if it equals the string in the "Replace" box.  If not, Find mode kicks
+	in to highlight the string, if found.  Running the Replace function
+	again would perform the substitution.  If "Replace All" is chosen,
+	the function will replace every instance of the string a) in the 
+	selected area if "Selected Area" is checked, b) in the entire
+	body of text if "Wrap" is checked, or c) from the cursor or
+	start of the selected section if neither box is checked.
 	@param s text to search
 	@param x start position
 	@param y end position, non-inclusive
@@ -244,70 +251,88 @@ public class Search extends PlugInWindow {
 		// TextTrix from highlighting when there's nothing to highlight
 		int selectionStart = -1;
 		int selectionEnd = -1;
+		// the string to return; s should be the entire body of text
 		String newstr = s;
-
+		// flags whether to employ the find function
+		boolean find = false;
+		
+		//System.out.println("selected text: " + s.substring(x, y));
 		// Acts according to whether the plug-in is set to the 
-		// "find" or "replace" modes
-		if (invokeReplace) { // "replace" mode
-			// confines the search to within the highlighted section
-			// only if the Selection option is checked; 
-			// otherwise, searches the entire text from the caret
-			// position or the end of the highlighted section forward
-
-			//			System.out.println("x: " + x + ", y: " + y);
-
-			// Passes only the selected section if flagged to do so
-			if (diag.getSelection()) { // highlighted text only
-				newstr =
-					replace(
-						s,
-						diag.getFindText(),
-						diag.getReplaceText(),
-						x,
-						y,
-						diag.getWord(),
-						diag.getReplaceAll(),
-						diag.getWrap(),
-						diag.getIgnoreCase());
-			} else { // from caret onward; replace() determines whether to wrap
-				newstr =
-					replace(
-						s,
-						diag.getFindText(),
-						diag.getReplaceText(),
-						y,
-						diag.getWord(),
-						diag.getReplaceAll(),
-						diag.getWrap(),
-						diag.getIgnoreCase());
+		// "find" or "replace" modes;
+		// only replace if text to replace is already highlighted or
+		// replace-all option chosen
+		if (invokeReplace && diag.getReplaceAll()) {
+			// Replace mode, replace-all
+			
+			// Check the area in which to replace every instance of
+			// the quarry; 
+			// by default, replace only within the selected section
+			if (diag.getWrap()) {
+				// replaces every instance throughout the entire
+				// body of text
+				x = 0;
+				y = s.length();
+			} else if (!diag.getSelection()) { 
+				// replace within highlighted text only
+				y = s.length();
 			}
-
+			
+			// replace the quarry in the given section of text
+			newstr =
+				replace(
+					s,
+					diag.getFindText(),
+					diag.getReplaceText(),
+					x,
+					y,
+					diag.getWord(),
+					diag.getIgnoreCase());
+					
+		} else if (invokeReplace 
+			&& x != y
+			&& s.substring(x, y).equals(diag.getFindText())) {
+			// replaces single instance of quarry, only if already highlighted;
+			// otherwise, defaults to find mode to highlight the quarry
+			newstr = s.substring(0, x) + diag.getReplaceText() + s.substring(y);
+			
 		} else if (stats) { // "stats" mode
-			//System.out.println("s: " + s);
-			// Assume only working from caret position onward
+			// Assume only working from caret position or start of selected 
+			// sectiononward
 			int start = x;
 			int end = s.length();
+			
 			// Passes only selected text if flagged to do so
 			if (diag.getSelection()) { // highlighted text only
 				//System.out.println("start: " + x + ", end: " + y);
 				selectionStart = start = x;
 				selectionEnd = end = y;
-			} else if (diag.getWrap()) { // entire text
+			} else if (diag.getWrap()) {
+				// entire text
 				start = 0;
 			}
+			
+			// gathers the statistics
 			//System.out.println("charCount: " + charCount(start, end));
 			diag.setCharCountLbl(charCount(start, end) + "");
 			diag.setWordCountLbl(wordCount(s, start, end) + "");
 			diag.setLineCountLbl(lineCount(s, start, end) + "");
-		} else { // "find" mode
+			
+		} else {
+			// defaults to Find mode
+			find = true;
+		}
+		
+		// Find mode
+		if (find) {
 			String findText = diag.getFindText();
 			// as in "replace" mode, "find" mode confines its search to 
 			// highlighted text only if the Selection option is checked;
-			// if not, "find" must start searching after any highlighted
-			// portion in case the user is using the tool for a repeated
-			// word, which would highlight the word each time and would
-			// force the user to deselect the text otherwise
-			if (diag.getSelection()) { // selected text only
+			// if not, "find" starts searching from the start of any 
+			// highlighted portion unless it already equals the text to find,
+			// often the case when the user scans through repeated words;
+			// instead, the function advances its start position by one character
+			if (diag.getSelection()) {
+				// check within the selected text only
 				selectionStart =
 					find(
 						s,
@@ -316,9 +341,19 @@ public class Search extends PlugInWindow {
 						y,
 						diag.getWord(),
 						diag.getIgnoreCase());
-			} else { // post-caret or post-selected text
+						
+			} else {
+				// check from the cursor or the start of selected region, or one
+				// char past the start if the region already highlights the text,
+				// to find the quarry
+				
+				// advance start by one char if the selected region already
+				// highlights the quarry
+				if (s.substring(x, y).equals(findText)) x++;
+				
+				// find the quarry
 				selectionStart =
-					find(s, findText, y, diag.getWord(), diag.getIgnoreCase());
+					find(s, findText, x, diag.getWord(), diag.getIgnoreCase());
 				// wrap if sequence not yet found and Wrap option
 				// checked
 				if (selectionStart == -1 && diag.getWrap()) {
@@ -337,7 +372,7 @@ public class Search extends PlugInWindow {
 				selectionEnd = selectionStart + findText.length();
 		}
 		boolean noTextChange = s.equals(newstr);
-		// "find" and "stats" mode don't alter the text
+		// "find" and "stats" mode won't alter the text
 		return new PlugInOutcome(
 			newstr,
 			selectionStart,
@@ -436,30 +471,79 @@ public class Search extends PlugInWindow {
 	}
 
 
-	/** Find and replace occurences of a given sequence.
-	Employs options for specific word searching, replacing all 
-	occurrences, wrap around to the text's beginning, and ignoring upper/
-	lower case.
-	@param text string to search
-	@param quarry sequence to find
-	@param replacement sequence with which to substitute
-	@param start index to start searching
-	@param end index at which to no longer begin another search; 
-	a search can continue past it, but cannot start once exceeding it
-	@param word treat the quarry as a separate word, with only 
-	non-letters/non-digits surrounding it
-	@param all if true, replace all occurrences of the sequence, starting 
-	with the current cursor position and continuing through the text's 
-	end, though only wrapping around to the start and back to the cursor 
-	if <code>wrap</code> is enabled; 
-	if false, replace only the first occurrence
-	@param wrap if necessary, continue to the beginning of the text and 
-	return to the cursor
-	@param ignoreCase ignore upper/lower case
-	@return text with appropriate replacements
-	@see #findReplace(String, String, String, boolean, boolean,
-	boolean, boolean)
+	/** Finds and replaces all occurences of a given sequence in the
+	 * given region.
+	 *	Employs options for specific word searching and ignoring upper/
+	 * lower case.
+	 * @param text string to search
+	 * @param quarry sequence to find
+	 * @param replacement sequence with which to substitute
+	 * @param start index to start searching
+	 * @param end index at which to no longer begin another search; 
+	 * a search can continue past it, but cannot start once exceeding it
+	 * @param word treat the quarry as a separate word, with only 
+	 * non-letters/non-digits surrounding it
+	 * @param ignoreCase ignore upper/lower case
+	 * @return text with appropriate replacements
 	*/
+	public String replace(
+		String text,
+		String quarry,
+		String replacement,
+		int start,
+		int end,
+		boolean word,
+		boolean ignoreCase) {
+		
+		//System.out.println("x: " + start + ", y: " + end);
+		
+		StringBuffer s = new StringBuffer(text.length());
+		int n = start;
+		int prev = -1;
+		
+		// append unmodified the text preceding the caret
+		s.append(text.substring(0, n));
+		
+		// continue until the reaching text's end or the quarry has
+		// not been found
+		while (n < end && n != -1) {
+			prev = n;
+			n = find(text, quarry, n, word, ignoreCase);
+			
+			// replace the quarry if found and starts within the
+			// given region
+			if (n != -1) {
+				// found within the region;
+				// append text at least up to the word
+				if (n < end) {
+					s.append(text.substring(prev, n) + replacement);
+				} else {
+					// found, but not replaced b/c doesn't start
+					// within the region; 
+					// apend the quarry, too
+					s.append(text.substring(prev, n + quarry.length()));
+				}
+				
+				// advance the find position just past the found quarry
+				n += quarry.length();
+				
+			} else {
+				// if not found, append the rest of the text unmodified
+				s.append(text.substring(prev));
+				text = s.toString();
+			}
+		}
+		
+		// append the rest of the text if a quarry occurrence extended 
+		// beyond the search boundary
+		if (n != -1) {
+			s.append(text.substring(n));
+			text = s.toString();
+		}
+		return text;
+	}
+	
+	/*
 	public String replace(
 		String text,
 		String quarry,
@@ -470,6 +554,7 @@ public class Search extends PlugInWindow {
 		boolean all,
 		boolean wrap,
 		boolean ignoreCase) {
+		
 		StringBuffer s = new StringBuffer(text.length());
 		int n = start;
 		int prev;
@@ -546,6 +631,7 @@ public class Search extends PlugInWindow {
 			return text;
 		}
 	}
+	*/
 
 	/** Front end for finding and replacing occurences of a given sequence.
 	@param text string to search
@@ -564,15 +650,13 @@ public class Search extends PlugInWindow {
 	@return text with appropriate replacements
 	@see #findReplace(String, String, String, int, int, boolean, boolean,
 	boolean, boolean)
-	*/
+	*
 	public String replace(
 		String text,
 		String quarry,
 		String replacement,
 		int start,
 		boolean word,
-		boolean all,
-		boolean wrap,
 		boolean ignoreCase) {
 		//System.out.println(
 		//	"replace search: " + text.substring(start, text.length()));
@@ -583,10 +667,9 @@ public class Search extends PlugInWindow {
 			start,
 			text.length(),
 			word,
-			all,
-			wrap,
 			ignoreCase);
 	}
+	*/
 
 	/** Counts the number of characters betwen two indices, including the first but not
 	 * the last index.
@@ -686,7 +769,7 @@ class FindDialog extends JPanel {//JFrame {
 		String msg = "";
 
 		// tips display
-		String lbl = "Tip: All searches and statistics start from the caret";
+		String lbl = "Tip: Searches and statistics begin from the cursor or start of selected area";
 		tips = new JLabel(lbl);
 		LibTTx.addGridBagComponent(
 			tips,
@@ -781,6 +864,13 @@ class FindDialog extends JPanel {//JFrame {
 		wrap.setMnemonic(KeyEvent.VK_A);
 		msg = "Starts searching from the cursor and wraps back to it";
 		wrap.setToolTipText(msg);
+		wrap.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (wrap.isSelected() && selection.isSelected()) {
+					selection.setSelected(false);
+				}
+			}
+		});
 
 		// replace all instances within highlighted section
 		lbl = "Selected area only";
@@ -799,6 +889,13 @@ class FindDialog extends JPanel {//JFrame {
 		msg =
 			"Searches, replaces text, or generates statistics only within the highlighted section";
 		selection.setToolTipText(msg);
+		selection.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (wrap.isSelected() && selection.isSelected()) {
+					wrap.setSelected(false);
+				}
+			}
+		});
 
 		// replace all instances from cursor to end of text unless 
 		// combined with wrap, where replace all instances in whole text
