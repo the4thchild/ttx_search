@@ -359,17 +359,17 @@ public class Search extends PlugIn {
 	public void activateWindow() {
 		diag.toFront();
 	}
-	/*
+	
 	public boolean isWindowVisible() {
 		return diag.isVisible();
 	}
 	
-	public void reloadWindow() {
+	public void closeWindow() {
 		diag.setVisible(false);
-		setTmpActivated(true);
-		diag.setVisible(true);
+//		setTmpActivated(true);
+//		diag.setVisible(true);
 	}
-	*/
+	
 
 	/**Find a the first occurrence of a given sequence in a string.
 	 * @param text string to search
