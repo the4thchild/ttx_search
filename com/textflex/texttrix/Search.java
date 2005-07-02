@@ -418,7 +418,7 @@ public class Search extends PlugInWindow {
 	 * @see LibTTx#pickWeighted(String[], int)
 	*/
 	private void displayResults(String[] results, int weightFront) {
-		diag.setResultsLbl(LibTTx.pickWeightedStr(results, weightFront));
+		diag.setResultsLbl("Results: " + LibTTx.pickWeightedStr(results, weightFront));
 	}
 	
 	/**Find a the first occurrence of a given sequence in a string.
@@ -841,9 +841,9 @@ class FindDialog extends JPanel {//JFrame {
 	JLabel wordCountLbl = null; // the actual word count
 	JLabel lineCountLbl = null; // the actual line count
 	String[] tips = {
-		"Searches and statistics begin from the cursor or start of selected area",
-		"Use ^t for TABs and ^n for NEWLINES",
-		"Stats available for \"Selected area only\", too"
+		"Tip: Searches and statistics begin from the cursor or start of selected area",
+		"Here's a secret: Use ^t for TABs and ^n for NEWLINEs",
+		"Psst!  Stats available for \"Selected area only\", too"
 	};
 		
 	/**Construct a find/replace dialog box
@@ -869,6 +869,7 @@ class FindDialog extends JPanel {//JFrame {
 		
 
 		// tips display
+		/*
 		tipsTitleLbl = new JLabel("Tips: ");
 		LibTTx.addGridBagComponent(
 			tipsTitleLbl,
@@ -880,14 +881,17 @@ class FindDialog extends JPanel {//JFrame {
 			100,
 			0,
 			this);//contentPane);
+		*/
 		tipsLbl = new JLabel("");
 		tipsLbl.setHorizontalAlignment(JLabel.RIGHT);
+		tipsLbl.setToolTipText("Tips for quicker searching");
+//		tipsLbl.setMaximumSize(new Dimension(100, 25));
 		LibTTx.addGridBagComponent(
 			tipsLbl,
 			constraints,
-			1,
 			0,
-			2,
+			0,
+			3,
 			1,
 			100,
 			0,
@@ -1044,6 +1048,8 @@ class FindDialog extends JPanel {//JFrame {
 		ignoreCase.setToolTipText(msg);
 		
 		
+		// Results
+		/*
 		resultsTitleLbl = new JLabel("Results: ");
 		LibTTx.addGridBagComponent(
 			resultsTitleLbl,
@@ -1055,22 +1061,28 @@ class FindDialog extends JPanel {//JFrame {
 			100,
 			0,
 			this);//contentPane);
+		*/
 
-		resultsLbl = new JLabel("");
+		resultsLbl = new JLabel("Results: ");
 		resultsLbl.setHorizontalAlignment(JLabel.RIGHT);
+		resultsLbl.setToolTipText("Results from the search");
+//		resultsLbl.setMaximumSize(new Dimension(100, 25));
 		LibTTx.addGridBagComponent(
 			resultsLbl,
 			constraints,
-			1,
+			0,
 			5,
-			2,
+			3,
 			1,
 			100,
 			0,
 			this);//contentPane);
 
+
 		// fires the "find" action
 		findBtn = new JButton(findAction);
+//		findBtn.setMinimumSize(new Dimension(100, 20));
+//		findBtn.setMaximumSize(new Dimension(100, 20));
 		LibTTx.addGridBagComponent(
 			findBtn,
 			constraints,
