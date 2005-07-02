@@ -302,19 +302,23 @@ public class Search extends PlugInWindow {
 				|| selectedText.equals(diag.getFindTextConverted())) {
 			// replaces single instance of quarry, only if already highlighted;
 			// otherwise, defaults to find mode to highlight the quarry
+			String replacementText = diag.getReplaceTextConverted();
 			String[] results = new String[] {
 				"Replaced " + selectedText + " with " 
-					+ diag.getReplaceTextConverted() + " once.",
-				"Boys and girls, Mr. " + diag.getReplaceTextConverted() 
+					+ replacementText + " once.",
+				"Boys and girls, Mr. " + replacementText 
 					+ " will be your substitute teacher today.",
 				selectedText + ", you're fired!",
-				diag.getReplaceTextConverted() + ", you're hired!"
+				replacementText + ", you're hired!"
 			};
 			displayResults(results, 4);
+			// Sets the cursor after the changed text to prevent
+			// the text from being found again if it contains the searched
+			// text
 			return new PlugInOutcome(
-				diag.getReplaceTextConverted(), 
-				selectionStart, 
-				selectionEnd,
+				replacementText, 
+				x + replacementText.length(),//selectionStart, 
+				x + replacementText.length(),
 				x,
 				y);
 			//newstr = s.substring(0, x) + diag.getReplaceTextConverted() + s.substring(y);
