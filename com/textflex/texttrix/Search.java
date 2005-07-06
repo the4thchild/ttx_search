@@ -218,7 +218,12 @@ public class Search extends PlugInWindow {
 		return run(s, caretPosition, caretPosition);
 	}
 	*/
-
+	
+	/** Runs the search tool.
+	 * @param s text to search
+	 * @return the plugin output
+	 * @see #run(String, int, int)
+	*/
 	public PlugInOutcome run(String s) {
 		return run(s, 0, 0);
 	}
@@ -882,6 +887,8 @@ class FindDialog extends JPanel {//JFrame {
 			0,
 			this);//contentPane);
 		*/
+		// Now the tips labels are combined into one label that spans the
+		// entire row to minimize resizing column widths and button sizes
 		tipsLbl = new JLabel("");
 		tipsLbl.setHorizontalAlignment(JLabel.RIGHT);
 		tipsLbl.setToolTipText("Tips for quicker searching");
@@ -1063,6 +1070,8 @@ class FindDialog extends JPanel {//JFrame {
 			this);//contentPane);
 		*/
 
+		// Now the results labels are combined into one label that spans the
+		// entire row to minimize resizing column widths and button sizes
 		resultsLbl = new JLabel("Results: ");
 		resultsLbl.setHorizontalAlignment(JLabel.RIGHT);
 		resultsLbl.setToolTipText("Results from the search");
