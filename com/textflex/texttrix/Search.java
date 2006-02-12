@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is
  * Text Flex.
- * Portions created by the Initial Developer are Copyright (C) 2003-5
+ * Portions created by the Initial Developer are Copyright (C) 2003-6
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s): David Young <dvd@textflex.com>
@@ -262,8 +262,9 @@ public class Search extends PlugInWindow {
 		boolean find = false;
 		String selectedText = "";
 		
-		// reset results label
+		// reset results and stats labels
 		diag.setResultsLbl("");
+		diag.resetStatsLbls();
 		
 		// cycle tips label
 		diag.setTipsLbl(1);
@@ -273,33 +274,29 @@ public class Search extends PlugInWindow {
 		// "find" or "replace" modes;
 		// only replace if text to replace is already highlighted or
 		// replace-all option chosen
-		if (invokeReplace && diag.getReplaceAll()) {
-			// Replace mode, replace-all
+		if (stats) { // "stats" mode
+			// Assume only working from caret position or start of selected 
+			// sectiononward
+			int start = x;
+			int end = s.length();
 			
-			// Check the area in which to replace every instance of
-			// the quarry; 
-			// by default, replace only within the selected section
-			if (diag.getWrap()) {
-				// replaces every instance throughout the entire
-				// body of text
-				x = 0;
-				y = s.length();
-			} else if (!diag.getSelection()) { 
-				// replace within highlighted text only
-				y = s.length();
+			// Passes only selected text if flagged to do so
+			if (diag.getSelection()) { // highlighted text only
+				//System.out.println("start: " + x + ", end: " + y);
+				selectionStart = start = x;
+				selectionEnd = end = y;
+			} else if (diag.getWrap()) {
+				// entire text
+				start = 0;
 			}
 			
-			// replace the quarry in the given section of text
-			newstr =
-				replace(
-					s,
-					diag.getFindTextConverted(),
-					diag.getReplaceTextConverted(),
-					x,
-					y,
-					diag.getWord(),
-					diag.getIgnoreCase());
-					
+			// gathers the statistics
+			//System.out.println("charCount: " + charCount(start, end));
+			diag.setStatsLbls(
+				charCount(start, end) + "", 
+				wordCount(s, start, end) + "", 
+				lineCount(s, start, end) + "");
+			
 		} else if (invokeReplace 
 			&& x != y
 			&& ((selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindTextConverted())
@@ -328,28 +325,33 @@ public class Search extends PlugInWindow {
 				y);
 			//newstr = s.substring(0, x) + diag.getReplaceTextConverted() + s.substring(y);
 			
-		} else if (stats) { // "stats" mode
-			// Assume only working from caret position or start of selected 
-			// sectiononward
-			int start = x;
-			int end = s.length();
+		} else if (invokeReplace && diag.getReplaceAll()) {
+			// Replace mode, replace-all
 			
-			// Passes only selected text if flagged to do so
-			if (diag.getSelection()) { // highlighted text only
-				//System.out.println("start: " + x + ", end: " + y);
-				selectionStart = start = x;
-				selectionEnd = end = y;
-			} else if (diag.getWrap()) {
-				// entire text
-				start = 0;
+			// Check the area in which to replace every instance of
+			// the quarry; 
+			// by default, replace only within the selected section
+			if (diag.getWrap()) {
+				// replaces every instance throughout the entire
+				// body of text
+				x = 0;
+				y = s.length();
+			} else if (!diag.getSelection()) { 
+				// replace within highlighted text only
+				y = s.length();
 			}
 			
-			// gathers the statistics
-			//System.out.println("charCount: " + charCount(start, end));
-			diag.setCharCountLbl(charCount(start, end) + "");
-			diag.setWordCountLbl(wordCount(s, start, end) + "");
-			diag.setLineCountLbl(lineCount(s, start, end) + "");
-			
+			// replace the quarry in the given section of text
+			newstr =
+				replace(
+					s,
+					diag.getFindTextConverted(),
+					diag.getReplaceTextConverted(),
+					x,
+					y,
+					diag.getWord(),
+					diag.getIgnoreCase());
+					
 		} else {
 			// defaults to Find mode
 			find = true;
@@ -1317,5 +1319,14 @@ class FindDialog extends JPanel {//JFrame {
 	public void setTipsLbl(int weightedFront) {
 		tipsLbl.setText(LibTTx.pickWeightedStr(tips, weightedFront));
 	}
-
+	
+	public void setStatsLbls(String charCount, String wordCount, String lineCount) {
+		setCharCountLbl(charCount);
+		setWordCountLbl(wordCount);
+		setLineCountLbl(lineCount);
+	}
+	
+	public void resetStatsLbls() {
+		setStatsLbls("", "", "");
+	}
 }
