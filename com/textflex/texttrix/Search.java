@@ -876,25 +876,11 @@ class FindDialog extends JPanel {//JFrame {
 		
 
 		// tips display
-		/*
-		tipsTitleLbl = new JLabel("Tips: ");
-		LibTTx.addGridBagComponent(
-			tipsTitleLbl,
-			constraints,
-			0,
-			0,
-			1,
-			1,
-			100,
-			0,
-			this);//contentPane);
-		*/
 		// Now the tips labels are combined into one label that spans the
 		// entire row to minimize resizing column widths and button sizes
 		tipsLbl = new JLabel("");
 		tipsLbl.setHorizontalAlignment(JLabel.RIGHT);
 		tipsLbl.setToolTipText("Tips for quicker searching");
-//		tipsLbl.setMaximumSize(new Dimension(100, 25));
 		LibTTx.addGridBagComponent(
 			tipsLbl,
 			constraints,
