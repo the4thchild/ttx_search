@@ -298,6 +298,7 @@ public class Search extends PlugInWindow {
 				lineCount(s, start, end) + "");
 			
 		} else if (invokeReplace 
+			&& !diag.getReplaceAll()
 			&& x != y
 			&& ((selectedText = s.substring(x, y)).equalsIgnoreCase(diag.getFindTextConverted())
 					&& diag.getIgnoreCase())
@@ -319,10 +320,10 @@ public class Search extends PlugInWindow {
 			// text
 			return new PlugInOutcome(
 				replacementText, 
-				x + replacementText.length(),//selectionStart, 
-				x + replacementText.length(),
-				x,
-				y);
+				x + replacementText.length(), // selection start
+				x + replacementText.length(), // seleection end
+				x, // replacement start
+				y); // replacement end
 			//newstr = s.substring(0, x) + diag.getReplaceTextConverted() + s.substring(y);
 			
 		} else if (invokeReplace && diag.getReplaceAll()) {
@@ -352,6 +353,12 @@ public class Search extends PlugInWindow {
 					diag.getWord(),
 					diag.getIgnoreCase());
 					
+			return new PlugInOutcome(
+				newstr, 
+				x + newstr.length(), // selection start
+				x + newstr.length(), // seleection end
+				x, // replacement start
+				y); // replacement end
 		} else {
 			// defaults to Find mode
 			find = true;
@@ -577,16 +584,15 @@ public class Search extends PlugInWindow {
 		
 		StringBuffer s = new StringBuffer(text.length());
 		int n = start;
-		int prev = -1;
+		int prev = n;
 		
 		// append unmodified the text preceding the caret
-		s.append(text.substring(0, n));
+//		s.append(text.substring(0, n));
 		
 		// continue until the reaching text's end or the quarry has
 		// not been found
 		int count = 0;
 		while (n < end && n != -1) {
-			prev = n;
 			n = find(text, quarry, n, word, ignoreCase);
 			
 			// replace the quarry if found and starts within the
@@ -594,32 +600,49 @@ public class Search extends PlugInWindow {
 			if (n != -1) {
 				// found within the region;
 				// append text at least up to the word
-				if (n < end) {
+				if (n + quarry.length() <= end) {
 					s.append(text.substring(prev, n) + replacement);
 					count++;
+					
+					// advance the find position just past the found quarry
+					n += quarry.length();
+					prev = n;
 				} else {
+					n += quarry.length();
+				}
+				
+				/* else {
 					// found, but not replaced b/c doesn't start
 					// within the region; 
 					// apend the quarry, too
 					s.append(text.substring(prev, n + quarry.length()));
-				}
+				}*/
 				
-				// advance the find position just past the found quarry
-				n += quarry.length();
 				
-			} else {
+			}/* else {
 				// if not found, append the rest of the text unmodified
-				s.append(text.substring(prev));
+				s.append(text.substring(prev, end));
 				text = s.toString();
-			}
+			}*/
+			
+//			if (n != -1 && n < end) prev = n;
 		}
 		
+		if (prev < end) {
+			// if not found or found beyond the search region, 
+			// append the rest of the text unmodified
+			s.append(text.substring(prev, end));
+		}
+		text = s.toString();
+		
+		/*
 		// append the rest of the text if a quarry occurrence extended 
 		// beyond the search boundary
 		if (n != -1) {
 			s.append(text.substring(n));
 			text = s.toString();
 		}
+		*/
 		
 		String[] results = null;
 		if (count > 10) {
