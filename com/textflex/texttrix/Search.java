@@ -888,7 +888,7 @@ class FindDialog extends JPanel {//JFrame {
 		Action statsAction) {
 		//super("Search and Stats");
 		super(new GridBagLayout());
-		setSize(450, 300);
+		setSize(450, 250);
 		//Container contentPane = getContentPane();
 		//contentPane.setLayout(new GridBagLayout());
 		GridBagConstraints constraints = new GridBagConstraints();
