@@ -57,7 +57,7 @@ import java.awt.event.*;
     on the currently selected tab.  The plug-in returns an object containing
     the potentially modified text as well as any positions to highlight.
 */
-public class Search extends PlugInWindow {
+public class Plug extends PlugInWindow {
 	private FindDialog diag = null; // the dialog window for user options
 	// whether to run find() or replace() after pressing a button,
 	// which causes TextTrix to lauch the plug-in's single runPlugIn() command
@@ -73,7 +73,7 @@ public class Search extends PlugInWindow {
 	to place in the dialog window so that the plug-in can directly
 	listen for user commands to run the search tool.
 	*/
-	public Search() {
+	public Plug() {
 		super(
 			"Search and Stats",
 			"tools",
